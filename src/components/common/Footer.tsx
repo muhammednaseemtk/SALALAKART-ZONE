@@ -229,15 +229,7 @@ export const Footer: React.FC = () => {
         <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-center">
           <Link to="/about" className="hover:text-slate-300">About</Link>
           <Link to="/privacy-policy" className="hover:text-slate-300">Privacy</Link>
-          <Link to="/terms-and-conditions" className="hover:text-slate-300">Terms</Link>
-          <span className="text-slate-700 hidden sm:inline">•</span>
-          {/* Admin link */}
-          <Link
-            to="/admin/login"
-            className="text-slate-400 hover:text-purple-400 font-bold transition-colors flex items-center gap-1"
-          >
-            <span>🔒 Staff Admin Portal</span>
-          </Link>
+          <Link to="/contact" className="hover:text-slate-300">Contact</Link>
         </div>
       </div>
     </footer>

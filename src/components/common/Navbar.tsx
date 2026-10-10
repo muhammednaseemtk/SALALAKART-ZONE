@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
-  const { user, isAuthenticated, isAdmin, logout, loginAsDemoAdmin, loginAsDemoCustomer } = useAuth();
+  const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const { itemCount, totalAmount, setIsCartOpen } = useCart();
   const { items: wishlistItems } = useWishlist();
 
@@ -308,51 +308,23 @@ export const Navbar: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    <div className="p-3 border-b border-slate-100 text-center">
-                      <p className="text-xs text-slate-500 mb-2">Welcome to SALALAKART ZONE!</p>
-                      <div className="grid grid-cols-2 gap-2">
+                    <div className="p-4 text-center">
+                      <p className="text-xs text-slate-500 mb-3">Welcome to SALALAKART ZONE!</p>
+                      <div className="flex flex-col gap-2">
                         <Link
                           to="/login"
-                          className="py-1.5 px-3 rounded-xl bg-pink-600 text-white font-bold text-xs hover:bg-pink-700 transition-colors"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="py-2 px-3 rounded-xl bg-pink-600 text-white font-bold text-xs hover:bg-pink-700 transition-colors"
                         >
-                          Log In
+                          Sign In to Your Account
                         </Link>
                         <Link
                           to="/register"
-                          className="py-1.5 px-3 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-colors"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          className="py-2 px-3 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 transition-colors"
                         >
-                          Register
+                          Create New Account
                         </Link>
-                      </div>
-                    </div>
-
-                    {/* Quick Demo Switcher for fast evaluation */}
-                    <div className="p-3 bg-slate-50/70 text-xs">
-                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
-                        Quick Demo Test Logins:
-                      </p>
-                      <div className="space-y-1.5">
-                        <button
-                          onClick={() => {
-                            loginAsDemoAdmin();
-                            setIsUserMenuOpen(false);
-                            navigate('/admin/dashboard');
-                          }}
-                          className="w-full text-left p-1.5 rounded-lg bg-purple-50 text-purple-700 font-semibold hover:bg-purple-100 transition-colors flex items-center justify-between"
-                        >
-                          <span>🔑 Login as Administrator</span>
-                          <span className="text-[10px] bg-purple-200 px-1 rounded">Admin</span>
-                        </button>
-                        <button
-                          onClick={() => {
-                            loginAsDemoCustomer();
-                            setIsUserMenuOpen(false);
-                          }}
-                          className="w-full text-left p-1.5 rounded-lg bg-blue-50 text-blue-700 font-semibold hover:bg-blue-100 transition-colors flex items-center justify-between"
-                        >
-                          <span>🛍️ Login as Customer</span>
-                          <span className="text-[10px] bg-blue-200 px-1 rounded">Customer</span>
-                        </button>
                       </div>
                     </div>
                   </>

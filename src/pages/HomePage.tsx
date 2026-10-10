@@ -109,10 +109,10 @@ export const HomePage: React.FC = () => {
               We are updating our store shelves with new toys, watches, and smart gadgets!
             </p>
             <Link
-              to="/admin/products/add"
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-purple-50 text-purple-700 hover:bg-purple-100 text-xs font-bold transition-colors"
+              to="/shop"
+              className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs font-bold shadow-md shadow-pink-500/20 hover:opacity-95 transition-all"
             >
-              <span>+ Add Products in Admin Panel</span>
+              <span>Explore Categories</span>
             </Link>
           </div>
         ) : (
