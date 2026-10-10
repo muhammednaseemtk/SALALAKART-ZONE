@@ -145,22 +145,22 @@ export const ProductDetailPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-screen">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 min-h-screen pb-32 md:pb-12">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-xs text-slate-400 mb-6">
-        <Link to="/" className="hover:text-pink-600">Home</Link>
+      <nav className="flex items-center gap-1.5 sm:gap-2 text-[11px] sm:text-xs text-slate-400 mb-5 overflow-hidden">
+        <Link to="/" className="hover:text-pink-600 shrink-0">Home</Link>
         <span>/</span>
-        <Link to="/shop" className="hover:text-pink-600">Shop</Link>
+        <Link to="/shop" className="hover:text-pink-600 shrink-0">Shop</Link>
         <span>/</span>
         {product.category_slug && (
           <>
-            <Link to={`/category/${product.category_slug}`} className="hover:text-pink-600">
+            <Link to={`/category/${product.category_slug}`} className="hover:text-pink-600 truncate max-w-[90px] sm:max-w-none">
               {product.category_name}
             </Link>
             <span>/</span>
           </>
         )}
-        <span className="text-slate-700 font-medium truncate max-w-[200px]">{product.name}</span>
+        <span className="text-slate-700 font-medium truncate max-w-[110px] sm:max-w-[220px]">{product.name}</span>
       </nav>
 
       {/* Main Product Showcase */}
@@ -629,6 +629,62 @@ export const ProductDetailPage: React.FC = () => {
           </div>
         </section>
       )}
+
+      {/* Sticky Mobile Purchase Bar (only visible on mobile devices < md) */}
+      <div className="fixed bottom-14 left-0 right-0 z-30 md:hidden bg-white/95 backdrop-blur-md border-t border-slate-200/90 px-4 py-2.5 shadow-2xl flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-baseline gap-1.5">
+            <span className="font-extrabold text-lg text-slate-900 leading-none">
+              ${finalPrice.toFixed(2)}
+            </span>
+            {product.sale_price && (
+              <span className="text-[11px] text-slate-400 line-through">
+                ${product.price.toFixed(2)}
+              </span>
+            )}
+          </div>
+          <span className={`text-[10px] font-bold ${isOutOfStock ? 'text-rose-600' : 'text-emerald-600'}`}>
+            {isOutOfStock ? 'Out of Stock' : 'In Stock & Ready'}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => toggleWishlist(product)}
+            className={`p-2.5 rounded-xl border transition-colors ${
+              inWishlist
+                ? 'border-rose-200 bg-rose-50 text-rose-600'
+                : 'border-slate-200 text-slate-600'
+            }`}
+            aria-label="Wishlist"
+          >
+            <Heart className={`w-4 h-4 ${inWishlist ? 'fill-current' : ''}`} />
+          </button>
+          <button
+            onClick={handleAddToCart}
+            disabled={isOutOfStock}
+            className={`py-2.5 px-4 rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-md transition-all ${
+              isOutOfStock
+                ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                : isAdded
+                ? 'bg-emerald-600 text-white'
+                : 'bg-gradient-to-r from-pink-500 to-purple-600 text-white'
+            }`}
+          >
+            {isAdded ? (
+              <>
+                <Check className="w-4 h-4 stroke-[2.5]" />
+                <span>Added!</span>
+              </>
+            ) : (
+              <>
+                <ShoppingCart className="w-4 h-4" />
+                <span>Add to Cart</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

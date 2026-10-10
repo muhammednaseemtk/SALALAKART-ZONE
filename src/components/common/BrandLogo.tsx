@@ -77,7 +77,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
       </div>
 
       {/* Colorful 3D "salalakart" */}
-      <div className="font-brand font-extrabold tracking-normal flex items-baseline leading-none text-2xl sm:text-3xl drop-shadow-sm group-hover:scale-[1.02] transition-transform">
+      <div className="font-brand font-extrabold tracking-normal flex items-baseline leading-none text-xl sm:text-3xl drop-shadow-sm group-hover:scale-[1.02] transition-transform">
         <span className="text-pink-600 drop-shadow-[0_2px_1px_rgba(219,39,119,0.2)]">s</span>
         <span className="text-amber-500 drop-shadow-[0_2px_1px_rgba(245,158,11,0.2)]">a</span>
         <span className="text-purple-600 drop-shadow-[0_2px_1px_rgba(147,51,234,0.2)]">l</span>
@@ -91,7 +91,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
       </div>
 
       {/* "Zone" */}
-      <div className="font-brand font-extrabold tracking-tight flex items-baseline leading-none text-xl sm:text-2xl -mt-0.5">
+      <div className="font-brand font-extrabold tracking-tight flex items-baseline leading-none text-lg sm:text-2xl -mt-0.5">
         <span className="text-pink-600">Z</span>
         <span className="text-purple-700">o</span>
         <span className="text-sky-500">n</span>
@@ -100,15 +100,15 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
 
       {/* Tagline with dual dots */}
       {showTagline && (
-        <div className="flex items-center justify-center gap-1.5 mt-1 text-[8.5px] sm:text-[10px] font-extrabold tracking-wider text-slate-700">
-          <span className="flex gap-0.5">
+        <div className="flex items-center justify-center gap-1 sm:gap-1.5 mt-0.5 sm:mt-1 text-[7px] sm:text-[10px] font-extrabold tracking-wider text-slate-700 whitespace-nowrap">
+          <span className="hidden sm:flex gap-0.5">
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 inline-block"></span>
             <span className="w-1.5 h-1.5 rounded-full bg-orange-500 inline-block"></span>
           </span>
-          <span className="text-slate-800 tracking-widest font-black uppercase">
+          <span className="text-slate-800 tracking-wider sm:tracking-widest font-black uppercase">
             GIFT, WATCH, GADGETS, TOYS
           </span>
-          <span className="flex gap-0.5">
+          <span className="hidden sm:flex gap-0.5">
             <span className="w-1.5 h-1.5 rounded-full bg-orange-500 inline-block"></span>
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
           </span>

@@ -48,8 +48,8 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, onClose
         onClick={onClose}
       />
 
-      <div className="min-h-full flex items-center justify-center p-4">
-        <div className="relative bg-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 shadow-2xl overflow-hidden z-10 border border-slate-100">
+      <div className="min-h-full flex items-center justify-center p-2.5 sm:p-4">
+        <div className="relative bg-white rounded-3xl max-w-3xl w-full p-4 sm:p-8 shadow-2xl max-h-[92vh] overflow-y-auto z-10 border border-slate-100">
           {/* Close button */}
           <button
             onClick={onClose}

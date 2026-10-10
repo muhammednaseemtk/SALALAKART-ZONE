@@ -50,6 +50,13 @@ export const AdminProductsPage: React.FC = () => {
     }
   };
 
+  const handleClearAll = async () => {
+    if (confirm('Are you sure you want to remove ALL products from the store? Only new products you add as admin will be visible.')) {
+      await api.clearAllProducts();
+      loadData();
+    }
+  };
+
   // Filter products
   const filtered = products.filter((p) => {
     const matchesSearch =
@@ -86,13 +93,25 @@ export const AdminProductsPage: React.FC = () => {
           </p>
         </div>
 
-        <Link
-          to="/admin/products/add"
-          className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-pink-500/20 hover:opacity-95 transition-all"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add New Product</span>
-        </Link>
+        <div className="flex items-center gap-2">
+          {products.length > 0 && (
+            <button
+              onClick={handleClearAll}
+              className="px-3.5 py-2.5 rounded-xl border border-rose-200 text-rose-600 hover:bg-rose-50 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+              title="Remove all products from store"
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>Clear All Products</span>
+            </button>
+          )}
+          <Link
+            to="/admin/products/add"
+            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-pink-600 to-purple-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-pink-500/20 hover:opacity-95 transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add New Product</span>
+          </Link>
+        </div>
       </div>
 
       {/* Filter Bar */}
@@ -138,6 +157,23 @@ export const AdminProductsPage: React.FC = () => {
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
         {loading ? (
           <div className="py-16 text-center text-xs text-slate-400">Loading products...</div>
+        ) : products.length === 0 ? (
+          <div className="py-20 text-center max-w-md mx-auto px-4">
+            <div className="w-16 h-16 rounded-3xl bg-pink-50 text-pink-600 flex items-center justify-center mx-auto mb-4 border border-pink-100 shadow-sm">
+              <Package className="w-8 h-8" />
+            </div>
+            <h3 className="font-brand font-black text-lg text-slate-800">Your Catalog is Empty</h3>
+            <p className="text-xs text-slate-500 mt-2 mb-6 leading-relaxed">
+              All demo items have been completely removed. Click the button below to add your first real product. Any product you add here will immediately appear on the storefront.
+            </p>
+            <Link
+              to="/admin/products/add"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-pink-600 text-white font-bold text-xs shadow-md shadow-pink-500/20 hover:bg-pink-700 transition-all hover:scale-105"
+            >
+              <Plus className="w-4 h-4" />
+              <span>+ Add Your First Product</span>
+            </Link>
+          </div>
         ) : filtered.length === 0 ? (
           <div className="py-16 text-center text-xs text-slate-400">
             No products match the selected filters.

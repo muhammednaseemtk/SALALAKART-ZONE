@@ -226,11 +226,11 @@ export const Footer: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 border-t border-slate-800 text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-4">
         <p>© {new Date().getFullYear()} SALALAKART ZONE. All rights reserved.</p>
 
-        <div className="flex items-center gap-6">
+        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-center">
           <Link to="/about" className="hover:text-slate-300">About</Link>
           <Link to="/privacy-policy" className="hover:text-slate-300">Privacy</Link>
           <Link to="/terms-and-conditions" className="hover:text-slate-300">Terms</Link>
-          <span className="text-slate-700">•</span>
+          <span className="text-slate-700 hidden sm:inline">•</span>
           {/* Admin link */}
           <Link
             to="/admin/login"

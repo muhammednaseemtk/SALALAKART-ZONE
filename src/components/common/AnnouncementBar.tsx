@@ -13,8 +13,8 @@ export const AnnouncementBar: React.FC = () => {
   if (settings && !settings.is_announcement_enabled) return null;
 
   return (
-    <div className="bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 text-white text-xs py-2 px-4 shadow-sm transition-all">
-      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+    <div className="bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 text-white text-[11px] sm:text-xs py-1.5 sm:py-2 px-3 sm:px-4 shadow-sm transition-all">
+      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1 sm:gap-2">
         {/* Left Perks */}
         <div className="hidden md:flex items-center gap-3 text-pink-100 font-medium">
           <span className="flex items-center gap-1">
@@ -25,9 +25,9 @@ export const AnnouncementBar: React.FC = () => {
         </div>
 
         {/* Center Announcement */}
-        <div className="flex items-center justify-center gap-2 font-semibold text-center tracking-wide">
-          <Sparkles className="w-3.5 h-3.5 text-yellow-300 animate-pulse" />
-          <span>
+        <div className="flex items-center justify-center gap-1.5 sm:gap-2 font-semibold text-center tracking-tight sm:tracking-wide">
+          <Sparkles className="w-3.5 h-3.5 text-yellow-300 animate-pulse shrink-0" />
+          <span className="truncate max-w-[290px] sm:max-w-none">
             {settings?.announcement_bar_text ||
               '🎉 Welcome to SALALAKART ZONE! Use code WELCOME10 for 10% OFF • Free shipping on orders over $75!'}
           </span>

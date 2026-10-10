@@ -21,6 +21,7 @@ import {
 export const HomePage: React.FC = () => {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [watchGadgetProducts, setWatchGadgetProducts] = useState<Product[]>([]);
   const [discountProducts, setDiscountProducts] = useState<Product[]>([]);
@@ -41,7 +42,10 @@ export const HomePage: React.FC = () => {
 
         setBanners(banList);
         setCategories(catList);
-        setFeaturedProducts(prodList.filter((p) => p.is_featured));
+        setAllProducts(prodList);
+        const featured = prodList.filter((p) => p.is_featured);
+        // If featured products exist, use them; otherwise show all products so admin items always show!
+        setFeaturedProducts(featured.length > 0 ? featured : prodList);
         setWatchGadgetProducts(
           prodList.filter((p) => p.category_slug === 'watches' || p.category_slug === 'smart-gadgets' || p.category_slug === 'electronic-gadgets')
         );
@@ -95,15 +99,33 @@ export const HomePage: React.FC = () => {
         </div>
 
         {/* Product Cards Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-          {featuredProducts.slice(0, 8).map((prod) => (
-            <ProductCard
-              key={prod.id}
-              product={prod}
-              onQuickView={(p) => setQuickViewProduct(p)}
-            />
-          ))}
-        </div>
+        {allProducts.length === 0 ? (
+          <div className="text-center py-12 px-4 rounded-3xl bg-white border border-slate-200/80 p-8 max-w-xl mx-auto shadow-xs">
+            <div className="w-14 h-14 rounded-full bg-pink-50 text-pink-500 flex items-center justify-center mx-auto mb-3">
+              <Sparkles className="w-7 h-7" />
+            </div>
+            <h3 className="font-brand font-bold text-lg text-slate-800">Fresh Arrivals Coming Soon</h3>
+            <p className="text-xs text-slate-500 mt-1 mb-4">
+              We are updating our store shelves with new toys, watches, and smart gadgets!
+            </p>
+            <Link
+              to="/admin/products/add"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-purple-50 text-purple-700 hover:bg-purple-100 text-xs font-bold transition-colors"
+            >
+              <span>+ Add Products in Admin Panel</span>
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+            {featuredProducts.slice(0, 8).map((prod) => (
+              <ProductCard
+                key={prod.id}
+                product={prod}
+                onQuickView={(p) => setQuickViewProduct(p)}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* 4. Promotional Highlights Banner */}
@@ -140,40 +162,42 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* 5. Watches & Smart Gadgets Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-14">
-        <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-8 gap-2">
-          <div>
-            <div className="flex items-center gap-1.5 text-cyan-600 font-bold text-xs uppercase tracking-wider bg-cyan-50 px-3 py-1 rounded-full w-fit">
-              <Watch className="w-3.5 h-3.5 text-cyan-500" />
-              <span>Smart Living & Tech</span>
+      {/* 5. Watches & Smart Gadgets Section (only shown if gadgets exist) */}
+      {watchGadgetProducts.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-14">
+          <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-8 gap-2">
+            <div>
+              <div className="flex items-center gap-1.5 text-cyan-600 font-bold text-xs uppercase tracking-wider bg-cyan-50 px-3 py-1 rounded-full w-fit">
+                <Watch className="w-3.5 h-3.5 text-cyan-500" />
+                <span>Smart Living & Tech</span>
+              </div>
+              <h2 className="font-brand font-black text-2xl sm:text-3xl text-slate-900 mt-2">
+                Watches & Smart Gadgets
+              </h2>
+              <p className="text-sm text-slate-500 mt-1">
+                Kids 4G GPS smart trackers, wireless chargers, karaoke mics & galaxy projectors
+              </p>
             </div>
-            <h2 className="font-brand font-black text-2xl sm:text-3xl text-slate-900 mt-2">
-              Watches & Smart Gadgets
-            </h2>
-            <p className="text-sm text-slate-500 mt-1">
-              Kids 4G GPS smart trackers, wireless chargers, karaoke mics & galaxy projectors
-            </p>
+            <Link
+              to="/category/watches"
+              className="text-xs font-bold text-cyan-600 hover:text-cyan-700 flex items-center gap-1 group whitespace-nowrap"
+            >
+              <span>View All Gadgets</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </Link>
           </div>
-          <Link
-            to="/category/watches"
-            className="text-xs font-bold text-cyan-600 hover:text-cyan-700 flex items-center gap-1 group whitespace-nowrap"
-          >
-            <span>View All Gadgets</span>
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-          </Link>
-        </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-          {watchGadgetProducts.slice(0, 4).map((prod) => (
-            <ProductCard
-              key={prod.id}
-              product={prod}
-              onQuickView={(p) => setQuickViewProduct(p)}
-            />
-          ))}
-        </div>
-      </section>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+            {watchGadgetProducts.slice(0, 4).map((prod) => (
+              <ProductCard
+                key={prod.id}
+                product={prod}
+                onQuickView={(p) => setQuickViewProduct(p)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* 6. Special Offers and Discounted Products */}
       {discountProducts.length > 0 && (

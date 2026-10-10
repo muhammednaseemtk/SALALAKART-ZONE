@@ -146,14 +146,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
         </div>
 
         {/* Pricing & Add to Cart */}
-        <div className="pt-2 border-t border-slate-50 flex items-center justify-between gap-2 mt-auto">
-          <div>
-            <div className="flex items-baseline gap-1.5">
-              <span className="font-extrabold text-base text-slate-900">
+        <div className="pt-2 border-t border-slate-50 flex items-center justify-between gap-1.5 mt-auto">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-baseline gap-1">
+              <span className="font-extrabold text-sm sm:text-base text-slate-900 leading-tight">
                 ${currentPrice.toFixed(2)}
               </span>
               {hasDiscount && (
-                <span className="text-xs text-slate-400 line-through">
+                <span className="text-[10px] sm:text-xs text-slate-400 line-through">
                   ${product.price.toFixed(2)}
                 </span>
               )}
@@ -163,7 +163,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
           <button
             onClick={handleAddToCart}
             disabled={isOutOfStock}
-            className={`px-3 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm ${
+            className={`p-1.5 sm:px-3 sm:py-2 rounded-xl font-bold text-xs flex items-center gap-1 shrink-0 transition-all shadow-sm ${
               isOutOfStock
                 ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
                 : isAdded
@@ -171,16 +171,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
                 : 'bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:opacity-95 hover:shadow-pink-500/25'
             }`}
             title={isOutOfStock ? 'Out of stock' : 'Add to cart'}
+            aria-label="Add to cart"
           >
             {isAdded ? (
               <>
                 <Check className="w-3.5 h-3.5 stroke-[3]" />
-                <span>Added</span>
+                <span className="hidden sm:inline">Added</span>
               </>
             ) : (
               <>
                 <ShoppingCart className="w-3.5 h-3.5" />
-                <span>Add</span>
+                <span className="hidden sm:inline">Add</span>
               </>
             )}
           </button>

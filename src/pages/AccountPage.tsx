@@ -137,14 +137,14 @@ export const AccountPage: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
-        {/* Sidebar Nav */}
-        <aside className="bg-white rounded-3xl p-4 border border-slate-200/80 shadow-xs space-y-1">
+        {/* Sidebar Nav (Mobile Horizontal Scrollable Tabs / Desktop Sidebar) */}
+        <aside className="bg-white rounded-3xl p-2 sm:p-4 border border-slate-200/80 shadow-xs flex lg:flex-col overflow-x-auto scrollbar-none gap-1.5 lg:gap-0 lg:space-y-1">
           <button
             onClick={() => {
               setActiveTab('profile');
               setSelectedOrder(null);
             }}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition-colors ${
+            className={`flex items-center gap-2 sm:gap-3 px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-2xl text-xs font-bold transition-colors whitespace-nowrap shrink-0 lg:w-full ${
               activeTab === 'profile' && !selectedOrder
                 ? 'bg-pink-50 text-pink-600'
                 : 'text-slate-700 hover:bg-slate-50'
@@ -159,13 +159,13 @@ export const AccountPage: React.FC = () => {
               setActiveTab('orders');
               setSelectedOrder(null);
             }}
-            className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-xs font-bold transition-colors ${
+            className={`flex items-center justify-between gap-2 px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-2xl text-xs font-bold transition-colors whitespace-nowrap shrink-0 lg:w-full ${
               activeTab === 'orders'
                 ? 'bg-pink-50 text-pink-600'
                 : 'text-slate-700 hover:bg-slate-50'
             }`}
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <Package className="w-4 h-4" />
               <span>Order History</span>
             </div>
@@ -179,7 +179,7 @@ export const AccountPage: React.FC = () => {
               setActiveTab('addresses');
               setSelectedOrder(null);
             }}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold transition-colors ${
+            className={`flex items-center gap-2 sm:gap-3 px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-2xl text-xs font-bold transition-colors whitespace-nowrap shrink-0 lg:w-full ${
               activeTab === 'addresses'
                 ? 'bg-pink-50 text-pink-600'
                 : 'text-slate-700 hover:bg-slate-50'
@@ -191,19 +191,19 @@ export const AccountPage: React.FC = () => {
 
           <Link
             to="/wishlist"
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
+            className="flex items-center gap-2 sm:gap-3 px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-2xl text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors whitespace-nowrap shrink-0 lg:w-full"
           >
             <Heart className="w-4 h-4 text-rose-500" />
             <span>Wishlist</span>
           </Link>
 
-          <div className="pt-2 border-t border-slate-100">
+          <div className="lg:pt-2 lg:border-t lg:border-slate-100 shrink-0">
             <button
               onClick={async () => {
                 await logout();
                 navigate('/');
               }}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors"
+              className="flex items-center gap-2 sm:gap-3 px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-2xl text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors whitespace-nowrap shrink-0 lg:w-full"
             >
               <LogOut className="w-4 h-4" />
               <span>Sign Out</span>

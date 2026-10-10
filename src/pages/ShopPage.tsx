@@ -10,9 +10,7 @@ import {
   Search,
   Filter,
   Check,
-  ChevronDown,
-  Sparkles,
-  ArrowUpDown,
+  RotateCcw,
 } from 'lucide-react';
 
 export const ShopPage: React.FC = () => {
@@ -28,7 +26,7 @@ export const ShopPage: React.FC = () => {
   // Filters state
   const [selectedCategory, setSelectedCategory] = useState<string>(categoryParam);
   const [selectedBrand, setSelectedBrand] = useState<string>('');
-  const [priceRange, setPriceRange] = useState<number>(100);
+  const [priceRange, setPriceRange] = useState<number>(500);
   const [inStockOnly, setInStockOnly] = useState<boolean>(false);
   const [sortBy, setSortBy] = useState<'featured' | 'price-asc' | 'price-desc' | 'latest' | 'rating'>('featured');
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -75,47 +73,142 @@ export const ShopPage: React.FC = () => {
   const clearAllFilters = () => {
     setSelectedCategory('');
     setSelectedBrand('');
-    setPriceRange(100);
+    setPriceRange(500);
     setInStockOnly(false);
     setSortBy('featured');
     setSearchParams({});
   };
 
   const hasActiveFilters = Boolean(
-    selectedCategory || selectedBrand || priceRange < 100 || inStockOnly || filterParam || searchParam
+    selectedCategory || selectedBrand || priceRange < 500 || inStockOnly || filterParam || searchParam
+  );
+
+  // Filter content component reused between desktop sidebar and mobile drawer
+  const FilterControls = () => (
+    <div className="space-y-6">
+      {/* Price Range */}
+      <div className="space-y-2">
+        <div className="flex justify-between text-xs font-bold text-slate-800">
+          <span>Max Price</span>
+          <span className="text-pink-600 font-extrabold">${priceRange}</span>
+        </div>
+        <input
+          type="range"
+          min="10"
+          max="500"
+          step="10"
+          value={priceRange}
+          onChange={(e) => setPriceRange(Number(e.target.value))}
+          className="w-full accent-pink-600 cursor-pointer h-2 bg-slate-100 rounded-lg"
+        />
+        <div className="flex justify-between text-[11px] text-slate-400 font-medium">
+          <span>$10</span>
+          <span>$250</span>
+          <span>$500+</span>
+        </div>
+      </div>
+
+      {/* Stock availability */}
+      <div className="pt-2">
+        <label className="flex items-center gap-3 text-xs font-bold text-slate-700 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={inStockOnly}
+            onChange={(e) => setInStockOnly(e.target.checked)}
+            className="rounded text-pink-600 focus:ring-pink-500 w-4 h-4"
+          />
+          <span>In Stock Only</span>
+        </label>
+      </div>
+
+      {/* Brand Filter */}
+      {brands.length > 0 && (
+        <div className="pt-4 border-t border-slate-100 space-y-2">
+          <label className="text-xs font-bold text-slate-900 block uppercase tracking-wider text-[11px]">Brands</label>
+          <div className="space-y-1.5 max-h-44 overflow-y-auto pr-1">
+            <button
+              onClick={() => setSelectedBrand('')}
+              className={`w-full text-left text-xs px-2.5 py-1.5 rounded-xl transition-colors flex items-center justify-between ${
+                !selectedBrand ? 'bg-pink-50 text-pink-700 font-bold' : 'text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              <span>All Brands</span>
+            </button>
+            {brands.map((b) => (
+              <button
+                key={b}
+                onClick={() => setSelectedBrand(b === selectedBrand ? '' : b)}
+                className={`w-full text-left text-xs px-2.5 py-1.5 rounded-xl transition-colors flex items-center justify-between ${
+                  selectedBrand === b ? 'bg-pink-50 text-pink-700 font-bold' : 'text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                <span>{b}</span>
+                {selectedBrand === b && <Check className="w-3.5 h-3.5 text-pink-600" />}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Categories Checklist */}
+      <div className="pt-4 border-t border-slate-100 space-y-2">
+        <label className="text-xs font-bold text-slate-900 block uppercase tracking-wider text-[11px]">Categories</label>
+        <div className="space-y-1 max-h-64 overflow-y-auto pr-1">
+          {categories.map((c) => (
+            <button
+              key={c.id}
+              onClick={() => {
+                const next = c.slug === selectedCategory ? '' : c.slug;
+                setSelectedCategory(next);
+                if (next) setSearchParams({ category: next });
+                else setSearchParams({});
+              }}
+              className={`w-full text-left text-xs px-2.5 py-2 rounded-xl transition-colors flex items-center justify-between ${
+                selectedCategory === c.slug
+                  ? 'bg-pink-50 text-pink-700 font-bold'
+                  : 'text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              <span className="truncate">{c.name}</span>
+              {selectedCategory === c.slug && <Check className="w-3.5 h-3.5 text-pink-600 shrink-0 ml-1" />}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-screen">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8 min-h-screen">
       {/* Page Heading & Breadcrumb */}
       <div className="mb-6">
-        <span className="text-xs font-bold text-pink-600 bg-pink-50 px-2.5 py-1 rounded-full uppercase tracking-wider">
+        <span className="text-[11px] font-bold text-pink-600 bg-pink-50 px-2.5 py-1 rounded-full uppercase tracking-wider">
           Complete Store Catalog
         </span>
-        <h1 className="font-brand font-black text-3xl sm:text-4xl text-slate-900 mt-2">
+        <h1 className="font-brand font-black text-2xl sm:text-3xl md:text-4xl text-slate-900 mt-2 leading-tight">
           {searchParam
-            ? `Search Results for "${searchParam}"`
+            ? `Search: "${searchParam}"`
             : selectedCategory
             ? categories.find((c) => c.slug === selectedCategory)?.name || 'Products'
             : filterParam === 'offers'
             ? 'Special Offers & Clearance Deals'
-            : 'Explore All Toys, Gifts, Watches & Gadgets'}
+            : 'Explore Toys, Gifts, Watches & Gadgets'}
         </h1>
-        <p className="text-sm text-slate-500 mt-1">
-          Showing {products.length} {products.length === 1 ? 'item' : 'items'} available for delivery
+        <p className="text-xs sm:text-sm text-slate-500 mt-1">
+          Showing <span className="font-bold text-slate-800">{products.length}</span> {products.length === 1 ? 'product' : 'products'}
         </p>
       </div>
 
       {/* Top Filter Bar & Sorting */}
-      <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs mb-8 flex flex-wrap items-center justify-between gap-4">
-        {/* Category quick pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-2xl scrollbar-none text-xs">
+      <div className="bg-white rounded-2xl p-3 sm:p-4 border border-slate-200/80 shadow-xs mb-6 sm:mb-8 space-y-3 sm:space-y-0 sm:flex sm:items-center sm:justify-between sm:gap-4">
+        {/* Category quick pills - touch scrollable */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none text-xs -mx-1 px-1">
           <button
             onClick={() => {
               setSelectedCategory('');
               setSearchParams({});
             }}
-            className={`px-3 py-1.5 rounded-full font-bold whitespace-nowrap transition-colors ${
+            className={`px-3 py-1.5 rounded-full font-bold whitespace-nowrap transition-colors shrink-0 ${
               !selectedCategory
                 ? 'bg-slate-900 text-white shadow-xs'
                 : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -130,7 +223,7 @@ export const ShopPage: React.FC = () => {
                 setSelectedCategory(cat.slug);
                 setSearchParams({ category: cat.slug });
               }}
-              className={`px-3 py-1.5 rounded-full font-bold whitespace-nowrap transition-colors ${
+              className={`px-3 py-1.5 rounded-full font-bold whitespace-nowrap transition-colors shrink-0 ${
                 selectedCategory === cat.slug
                   ? 'bg-pink-600 text-white shadow-xs'
                   : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
@@ -141,22 +234,22 @@ export const ShopPage: React.FC = () => {
           ))}
         </div>
 
-        {/* Sorting Dropdown & Mobile Filter Button */}
-        <div className="flex items-center gap-3 ml-auto">
+        {/* Mobile controls & Desktop Sorting */}
+        <div className="flex items-center justify-between sm:justify-end gap-2.5 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
           <button
-            onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)}
-            className="md:hidden flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50"
+            onClick={() => setIsMobileFilterOpen(true)}
+            className="md:hidden flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-pink-50 hover:text-pink-600 text-xs font-bold text-slate-700 transition-colors"
           >
             <SlidersHorizontal className="w-3.5 h-3.5 text-pink-500" />
-            <span>Filters</span>
+            <span>Filters {hasActiveFilters && '•'}</span>
           </button>
 
-          <div className="flex items-center gap-2 text-xs">
-            <span className="text-slate-400 font-medium hidden sm:inline">Sort By:</span>
+          <div className="flex items-center gap-1.5 text-xs ml-auto">
+            <span className="text-slate-400 font-medium hidden sm:inline">Sort:</span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 font-bold text-slate-800 text-xs focus:outline-pink-500"
+              className="bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2 font-bold text-slate-800 text-xs focus:outline-pink-500 cursor-pointer"
             >
               <option value="featured">Featured First</option>
               <option value="price-asc">Price: Low to High</option>
@@ -168,14 +261,10 @@ export const ShopPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Layout: Filter Sidebar + Products Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-8 items-start">
+      {/* Main Layout: Desktop Filter Sidebar + Products Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 lg:gap-8 items-start">
         {/* Desktop Sidebar Filters */}
-        <aside
-          className={`md:block ${
-            isMobileFilterOpen ? 'block' : 'hidden'
-          } bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-6`}
-        >
+        <aside className="hidden md:block bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-6 sticky top-24">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
               <Filter className="w-4 h-4 text-pink-600" />
@@ -184,109 +273,75 @@ export const ShopPage: React.FC = () => {
             {hasActiveFilters && (
               <button
                 onClick={clearAllFilters}
-                className="text-xs font-bold text-rose-500 hover:underline"
+                className="text-xs font-bold text-rose-500 hover:underline flex items-center gap-1"
               >
-                Clear All
+                <RotateCcw className="w-3 h-3" />
+                <span>Reset</span>
               </button>
             )}
           </div>
 
-          {/* Price Range */}
-          <div className="space-y-2">
-            <div className="flex justify-between text-xs font-bold text-slate-800">
-              <span>Max Price</span>
-              <span className="text-pink-600">${priceRange}</span>
-            </div>
-            <input
-              type="range"
-              min="10"
-              max="150"
-              step="5"
-              value={priceRange}
-              onChange={(e) => setPriceRange(Number(e.target.value))}
-              className="w-full accent-pink-600 cursor-pointer"
+          <FilterControls />
+        </aside>
+
+        {/* Mobile Slide-over Filter Sheet */}
+        {isMobileFilterOpen && (
+          <div className="fixed inset-0 z-50 overflow-hidden md:hidden">
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"
+              onClick={() => setIsMobileFilterOpen(false)}
             />
-            <div className="flex justify-between text-[10px] text-slate-400">
-              <span>$10</span>
-              <span>$150+</span>
-            </div>
-          </div>
 
-          {/* Stock availability */}
-          <div className="pt-2">
-            <label className="flex items-center gap-2.5 text-xs font-semibold text-slate-700 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={inStockOnly}
-                onChange={(e) => setInStockOnly(e.target.checked)}
-                className="rounded text-pink-600 focus:ring-pink-500 w-4 h-4"
-              />
-              <span>In Stock Only</span>
-            </label>
-          </div>
-
-          {/* Brand Filter */}
-          {brands.length > 0 && (
-            <div className="pt-3 border-t border-slate-100 space-y-2">
-              <label className="text-xs font-bold text-slate-900 block">Brands</label>
-              <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
-                <button
-                  onClick={() => setSelectedBrand('')}
-                  className={`w-full text-left text-xs px-2 py-1 rounded-lg transition-colors flex items-center justify-between ${
-                    !selectedBrand ? 'bg-pink-50 text-pink-700 font-bold' : 'text-slate-600 hover:bg-slate-50'
-                  }`}
-                >
-                  <span>All Brands</span>
-                </button>
-                {brands.map((b) => (
+            <div className="fixed inset-y-0 right-0 max-w-full flex pl-0 sm:pl-10">
+              <div className="w-screen max-w-full sm:max-w-sm bg-white shadow-2xl flex flex-col">
+                {/* Header */}
+                <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                  <div className="flex items-center gap-2">
+                    <Filter className="w-4 h-4 text-pink-600" />
+                    <h3 className="font-brand font-bold text-base text-slate-900">
+                      Filter Products
+                    </h3>
+                  </div>
                   <button
-                    key={b}
-                    onClick={() => setSelectedBrand(b === selectedBrand ? '' : b)}
-                    className={`w-full text-left text-xs px-2 py-1 rounded-lg transition-colors flex items-center justify-between ${
-                      selectedBrand === b ? 'bg-pink-50 text-pink-700 font-bold' : 'text-slate-600 hover:bg-slate-50'
-                    }`}
+                    onClick={() => setIsMobileFilterOpen(false)}
+                    className="p-1.5 text-slate-400 hover:text-slate-700 rounded-full"
                   >
-                    <span>{b}</span>
-                    {selectedBrand === b && <Check className="w-3.5 h-3.5 text-pink-600" />}
+                    <X className="w-5 h-5" />
                   </button>
-                ))}
+                </div>
+
+                {/* Body */}
+                <div className="flex-1 overflow-y-auto p-5">
+                  <FilterControls />
+                </div>
+
+                {/* Footer Buttons */}
+                <div className="p-4 border-t border-slate-100 bg-white grid grid-cols-2 gap-2 shadow-lg">
+                  <button
+                    onClick={clearAllFilters}
+                    className="py-2.5 px-4 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs"
+                  >
+                    Reset All
+                  </button>
+                  <button
+                    onClick={() => setIsMobileFilterOpen(false)}
+                    className="py-2.5 px-4 rounded-xl bg-pink-600 text-white font-bold text-xs shadow-md shadow-pink-500/20"
+                  >
+                    Show ({products.length})
+                  </button>
+                </div>
               </div>
             </div>
-          )}
-
-          {/* Categories Checklist */}
-          <div className="pt-3 border-t border-slate-100 space-y-2">
-            <label className="text-xs font-bold text-slate-900 block">Categories</label>
-            <div className="space-y-1 max-h-60 overflow-y-auto pr-1">
-              {categories.map((c) => (
-                <button
-                  key={c.id}
-                  onClick={() => {
-                    const next = c.slug === selectedCategory ? '' : c.slug;
-                    setSelectedCategory(next);
-                    if (next) setSearchParams({ category: next });
-                    else setSearchParams({});
-                  }}
-                  className={`w-full text-left text-xs px-2.5 py-1.5 rounded-xl transition-colors flex items-center justify-between ${
-                    selectedCategory === c.slug
-                      ? 'bg-pink-50 text-pink-700 font-bold'
-                      : 'text-slate-600 hover:bg-slate-50'
-                  }`}
-                >
-                  <span className="truncate">{c.name}</span>
-                  {selectedCategory === c.slug && <Check className="w-3.5 h-3.5 text-pink-600" />}
-                </button>
-              ))}
-            </div>
           </div>
-        </aside>
+        )}
 
         {/* Products Grid */}
         <main className="md:col-span-3">
           {loading ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="animate-pulse bg-white rounded-3xl p-4 border border-slate-100">
+                <div key={i} className="animate-pulse bg-white rounded-3xl p-3 sm:p-4 border border-slate-100">
                   <div className="aspect-square bg-slate-100 rounded-2xl mb-3" />
                   <div className="h-4 bg-slate-100 rounded w-3/4 mb-2" />
                   <div className="h-3 bg-slate-100 rounded w-1/2" />
@@ -294,7 +349,7 @@ export const ShopPage: React.FC = () => {
               ))}
             </div>
           ) : products.length === 0 ? (
-            <div className="bg-white rounded-3xl p-12 text-center border border-slate-200/80 shadow-xs">
+            <div className="bg-white rounded-3xl p-8 sm:p-12 text-center border border-slate-200/80 shadow-xs">
               <div className="w-16 h-16 rounded-full bg-pink-50 text-pink-400 flex items-center justify-center mx-auto mb-4">
                 <Search className="w-8 h-8" />
               </div>
@@ -312,7 +367,7 @@ export const ShopPage: React.FC = () => {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
               {products.map((prod) => (
                 <ProductCard
                   key={prod.id}

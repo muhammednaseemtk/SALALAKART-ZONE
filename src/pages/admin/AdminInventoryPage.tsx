@@ -111,7 +111,14 @@ export const AdminInventoryPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {products.map((p) => (
+              {products.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-slate-400 text-xs">
+                    No products in catalog to manage inventory. Add products first.
+                  </td>
+                </tr>
+              ) : (
+                products.map((p) => (
                 <tr key={p.id} className="hover:bg-slate-50/60 transition-colors">
                   <td className="py-3 px-3">
                     <p className="font-bold text-slate-900">{p.name}</p>
@@ -146,7 +153,7 @@ export const AdminInventoryPage: React.FC = () => {
                     </button>
                   </td>
                 </tr>
-              ))}
+              )))}
             </tbody>
           </table>
         </div>

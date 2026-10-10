@@ -45,38 +45,38 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners }) => {
         <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-amber-400/20 rounded-full blur-3xl pointer-events-none" />
 
         {/* Content Box */}
-        <div className="relative max-w-7xl mx-auto px-6 sm:px-12 py-12 w-full z-10">
-          <div className="max-w-2xl text-white space-y-5 animate-in fade-in duration-500">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-12 py-8 sm:py-12 w-full z-10">
+          <div className="max-w-2xl text-white space-y-4 sm:space-y-5 animate-in fade-in duration-500">
             {/* Badge */}
             {current.badge_text && (
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white font-extrabold text-xs tracking-wider uppercase shadow-sm">
+              <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white font-extrabold text-[11px] sm:text-xs tracking-wider uppercase shadow-sm">
                 <Sparkles className="w-3.5 h-3.5 text-yellow-300 animate-spin" style={{ animationDuration: '6s' }} />
                 <span>{current.badge_text}</span>
               </div>
             )}
 
             {/* Title */}
-            <h1 className="font-brand font-black text-3xl sm:text-5xl lg:text-6xl tracking-tight leading-[1.1] text-white drop-shadow-md">
+            <h1 className="font-brand font-black text-2xl sm:text-5xl lg:text-6xl tracking-tight leading-[1.15] sm:leading-[1.1] text-white drop-shadow-md">
               {current.title}
             </h1>
 
             {/* Subtitle */}
-            <p className="text-sm sm:text-lg text-pink-50 font-medium leading-relaxed max-w-xl drop-shadow-xs">
+            <p className="text-xs sm:text-lg text-pink-50 font-medium leading-relaxed max-w-xl drop-shadow-xs">
               {current.subtitle}
             </p>
 
             {/* Action Buttons */}
-            <div className="flex flex-wrap items-center gap-3 pt-2">
+            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 pt-2">
               <Link
                 to={current.link_url || '/shop'}
-                className="px-7 py-3.5 rounded-2xl bg-white text-slate-900 font-extrabold text-sm sm:text-base hover:bg-yellow-300 hover:text-slate-900 shadow-xl shadow-black/20 hover:scale-105 transition-all flex items-center gap-2 group"
+                className="px-5 sm:px-7 py-3 sm:py-3.5 rounded-2xl bg-white text-slate-900 font-extrabold text-xs sm:text-base hover:bg-yellow-300 hover:text-slate-900 shadow-xl shadow-black/20 hover:scale-105 transition-all flex items-center gap-2 group"
               >
                 <span>{current.button_text || 'Shop Now'}</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
                 to="/shop"
-                className="px-6 py-3.5 rounded-2xl bg-white/15 backdrop-blur-md border border-white/30 text-white font-bold text-sm sm:text-base hover:bg-white/25 transition-all"
+                className="px-4 sm:px-6 py-3 sm:py-3.5 rounded-2xl bg-white/15 backdrop-blur-md border border-white/30 text-white font-bold text-xs sm:text-base hover:bg-white/25 transition-all"
               >
                 View All Categories
               </Link>
@@ -90,14 +90,14 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners }) => {
         <>
           <button
             onClick={() => setCurrentIndex((prev) => (prev - 1 + banners.length) % banners.length)}
-            className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 hover:bg-black/60 text-white backdrop-blur-md flex items-center justify-center transition-all z-20"
+            className="hidden sm:flex absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 hover:bg-black/60 text-white backdrop-blur-md items-center justify-center transition-all z-20"
             aria-label="Previous slide"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <button
             onClick={() => setCurrentIndex((prev) => (prev + 1) % banners.length)}
-            className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 hover:bg-black/60 text-white backdrop-blur-md flex items-center justify-center transition-all z-20"
+            className="hidden sm:flex absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/30 hover:bg-black/60 text-white backdrop-blur-md items-center justify-center transition-all z-20"
             aria-label="Next slide"
           >
             <ChevronRight className="w-5 h-5" />

@@ -58,6 +58,23 @@ function setStored<T>(key: string, val: T): void {
   }
 }
 
+// Helper to get products, guaranteeing all mock dummy products are purged
+function getStoredProducts(): Product[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
+    if (!raw) return [];
+    const list: Product[] = JSON.parse(raw);
+    // Legacy mock ID pattern: prod-1 through prod-15
+    const cleaned = list.filter((p) => !p.id.match(/^prod-[1-9]$|^prod-1[0-5]$/));
+    if (cleaned.length !== list.length) {
+      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(cleaned));
+    }
+    return cleaned;
+  } catch {
+    return [];
+  }
+}
+
 // Initial customers seed
 const INITIAL_CUSTOMERS: UserProfile[] = [
   {
@@ -402,7 +419,7 @@ export const api = {
     }
 
     if (prods.length === 0) {
-      prods = getStored<Product[]>(STORAGE_KEYS.PRODUCTS, INITIAL_PRODUCTS);
+      prods = getStoredProducts();
     }
 
     // Apply filtering
@@ -487,7 +504,7 @@ export const api = {
       }
     }
 
-    const prods = getStored<Product[]>(STORAGE_KEYS.PRODUCTS, INITIAL_PRODUCTS);
+    const prods = getStoredProducts();
     prods.unshift(newProd);
     setStored(STORAGE_KEYS.PRODUCTS, prods);
 
@@ -512,7 +529,7 @@ export const api = {
       }
     }
 
-    const prods = getStored<Product[]>(STORAGE_KEYS.PRODUCTS, INITIAL_PRODUCTS);
+    const prods = getStoredProducts();
     const index = prods.findIndex((p) => p.id === id);
     if (index === -1) throw new Error('Product not found');
 
@@ -548,10 +565,21 @@ export const api = {
       }
     }
 
-    const prods = getStored<Product[]>(STORAGE_KEYS.PRODUCTS, INITIAL_PRODUCTS);
+    const prods = getStoredProducts();
     const filtered = prods.filter((p) => p.id !== id);
     setStored(STORAGE_KEYS.PRODUCTS, filtered);
     return true;
+  },
+
+  async clearAllProducts(): Promise<void> {
+    setStored(STORAGE_KEYS.PRODUCTS, []);
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.from('products').delete().neq('id', 'sentinel-keep');
+      } catch (err) {
+        console.warn('Supabase clearAllProducts error:', err);
+      }
+    }
   },
 
   // ----------------------------------------------------
@@ -834,7 +862,7 @@ export const api = {
     notes: string,
     createdBy = 'Admin'
   ): Promise<Product> {
-    const prods = getStored<Product[]>(STORAGE_KEYS.PRODUCTS, INITIAL_PRODUCTS);
+    const prods = getStoredProducts();
     const idx = prods.findIndex((p) => p.id === productId);
     if (idx === -1) throw new Error('Product not found for inventory adjustment');
 
@@ -886,7 +914,7 @@ export const api = {
     setStored(STORAGE_KEYS.REVIEWS, revs);
 
     // Update product rating and count
-    const prods = getStored<Product[]>(STORAGE_KEYS.PRODUCTS, INITIAL_PRODUCTS);
+    const prods = getStoredProducts();
     const pIdx = prods.findIndex((p) => p.id === review.product_id);
     if (pIdx !== -1) {
       const prodRevs = revs.filter((r) => r.product_id === review.product_id && r.is_approved);
