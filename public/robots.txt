@@ -1,0 +1,16 @@
+# SALALAKART ZONE — Robots.txt
+User-agent: *
+Allow: /
+Allow: /shop
+Allow: /category/
+Allow: /product/
+Allow: /about
+Allow: /contact
+
+# Protect customer account and admin portal from crawling
+Disallow: /admin/
+Disallow: /account/
+Disallow: /cart
+Disallow: /checkout
+
+Sitemap: https://salalakartzone.com/sitemap.xml
