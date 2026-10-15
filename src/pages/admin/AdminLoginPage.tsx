@@ -14,7 +14,6 @@ import {
   Loader2,
   CheckCircle,
   AlertCircle,
-  Database,
 } from 'lucide-react';
 
 export const AdminLoginPage: React.FC = () => {
@@ -23,9 +22,6 @@ export const AdminLoginPage: React.FC = () => {
     resetPassword,
     isAdmin,
     isAuthenticated,
-    isSupabaseConnected,
-    isFirebaseConnected,
-    backendType,
     user,
     logout,
   } = useAuth();
@@ -131,22 +127,6 @@ export const AdminLoginPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Temporary Admin Authentication Status Badge */}
-        <div className="p-3 rounded-2xl bg-slate-800/80 border border-slate-700/60 text-xs space-y-1.5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Database className="w-4 h-4 text-purple-400" />
-              <span className="text-[11px] font-medium text-slate-300">Admin Mode:</span>
-            </div>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-bold">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-              Temporary Hardcoded Dev Login
-            </span>
-          </div>
-          <p className="text-[10px] text-slate-400 leading-relaxed">
-            Temporary development testing credentials enabled for <code className="text-purple-300">admin@salalakartzone.com</code>.
-          </p>
-        </div>
 
         {/* Warning if logged in as normal customer */}
         {isAuthenticated && !isAdmin && (
@@ -196,6 +176,9 @@ export const AdminLoginPage: React.FC = () => {
               />
               <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
+            <p className="text-[11px] text-slate-400 mt-1.5">
+              Hint: <button type="button" onClick={() => setEmail(getAuthorizedAdminEmail())} className="text-purple-300 hover:text-purple-200 underline font-mono cursor-pointer transition-colors" title="Click to use email">{getAuthorizedAdminEmail()}</button>
+            </p>
           </div>
 
           <div>
