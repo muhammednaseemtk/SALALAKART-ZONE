@@ -1,6 +1,5 @@
 import React from 'react';
 import { Outlet, NavLink, Link } from 'react-router-dom';
-import { AnnouncementBar } from './AnnouncementBar';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import { CartDrawer } from './CartDrawer';
@@ -23,9 +22,6 @@ export const StorefrontLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800 font-sans selection:bg-pink-500 selection:text-white pb-16 md:pb-0">
-      {/* Top promotional bar */}
-      <AnnouncementBar />
-
       {/* Main sticky navigation */}
       <Navbar />
 

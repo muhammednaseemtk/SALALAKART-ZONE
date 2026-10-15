@@ -246,6 +246,7 @@ export const AccountPage: React.FC = () => {
                     type="email"
                     disabled
                     value={user?.email || ''}
+                    placeholder="Enter your email"
                     className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-slate-100 text-slate-500"
                   />
                   <p className="text-[10px] text-slate-400 mt-1">Managed via Supabase Auth</p>

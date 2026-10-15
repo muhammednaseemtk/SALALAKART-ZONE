@@ -64,7 +64,7 @@ export const ForgotPasswordPage: React.FC = () => {
                 <input
                   type="email"
                   required
-                  placeholder="name@example.com"
+                  placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full text-xs p-3 pl-10 rounded-xl border border-slate-200 focus:outline-pink-500 bg-slate-50/50"

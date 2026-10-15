@@ -171,7 +171,7 @@ export const AdminLoginPage: React.FC = () => {
                 autoComplete="off"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder={getAuthorizedAdminEmail()}
+                placeholder="Enter your email"
                 className="w-full text-xs p-3 pl-10 rounded-xl bg-slate-950/80 border border-slate-700/80 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-white placeholder-slate-500 outline-none transition-all"
               />
               <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -302,7 +302,7 @@ export const AdminLoginPage: React.FC = () => {
                       required
                       value={resetEmail}
                       onChange={(e) => setResetEmail(e.target.value)}
-                      placeholder={getAuthorizedAdminEmail()}
+                      placeholder="Enter your email"
                       className="w-full text-xs p-3 pl-10 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 focus:border-purple-500 outline-none"
                     />
                     <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />

@@ -267,7 +267,7 @@ export const DEFAULT_STORE_SETTINGS: StoreSettings = {
   tax_rate: 0.05, // 5%
   free_shipping_threshold: 75.00,
   announcement_bar_text: '🎉 Welcome to SALALAKART ZONE! Get 10% OFF with code WELCOME10 • Free delivery on orders over ₹75!',
-  is_announcement_enabled: true,
+  is_announcement_enabled: false,
   razorpay_key_id: '',
   is_razorpay_enabled: false,
   is_cod_enabled: true,

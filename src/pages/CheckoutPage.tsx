@@ -206,7 +206,7 @@ export const CheckoutPage: React.FC = () => {
                   value={formData.email}
                   onChange={handleChange}
                   className="w-full text-xs p-3 rounded-xl border border-slate-200 focus:outline-pink-500 bg-slate-50/50"
-                  placeholder="name@example.com"
+                  placeholder="Enter your email"
                 />
               </div>
 

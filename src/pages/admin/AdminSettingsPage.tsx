@@ -94,6 +94,7 @@ export const AdminSettingsPage: React.FC = () => {
               <label className="text-xs font-bold text-slate-700 block mb-1">Support Email</label>
               <input
                 type="email"
+                placeholder="Enter your email"
                 value={settings.contact_email}
                 onChange={(e) => handleChange('contact_email', e.target.value)}
                 className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-slate-50"
