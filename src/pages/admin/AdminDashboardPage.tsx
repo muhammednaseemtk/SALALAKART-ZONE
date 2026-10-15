@@ -20,22 +20,51 @@ import {
 export const AdminDashboardPage: React.FC = () => {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function load() {
-      setLoading(true);
+  const loadStats = async () => {
+    setLoading(true);
+    setError(null);
+    try {
       const data = await api.getReports();
       setStats(data);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to retrieve analytics data';
+      setError(msg);
+    } finally {
       setLoading(false);
     }
-    load();
+  };
+
+  useEffect(() => {
+    loadStats();
   }, []);
 
-  if (loading || !stats) {
+  if (loading) {
     return (
       <div className="py-20 text-center">
         <div className="w-10 h-10 border-4 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-        <p className="text-xs text-slate-500 font-bold">Calculating real-time analytics...</p>
+        <p className="text-xs text-slate-500 font-bold">Calculating real-time analytics from database...</p>
+      </div>
+    );
+  }
+
+  if (error || !stats) {
+    return (
+      <div className="py-16 text-center max-w-md mx-auto space-y-4">
+        <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto">
+          <AlertTriangle className="w-6 h-6" />
+        </div>
+        <div>
+          <h2 className="font-brand font-bold text-lg text-slate-900">Unable to Load Dashboard Data</h2>
+          <p className="text-xs text-slate-500 mt-1">{error || 'An unexpected error occurred while fetching database analytics.'}</p>
+        </div>
+        <button
+          onClick={loadStats}
+          className="px-4 py-2 rounded-xl bg-purple-600 text-white font-bold text-xs hover:bg-purple-700 transition-colors cursor-pointer"
+        >
+          Try Again
+        </button>
       </div>
     );
   }

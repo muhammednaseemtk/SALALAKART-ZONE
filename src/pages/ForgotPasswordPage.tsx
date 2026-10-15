@@ -1,16 +1,27 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BrandLogo } from '../components/common/BrandLogo';
-import { Mail, ArrowRight, CheckCircle, ArrowLeft } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { Mail, ArrowRight, CheckCircle, ArrowLeft, Loader2, AlertCircle } from 'lucide-react';
 
 export const ForgotPasswordPage: React.FC = () => {
+  const { resetPassword } = useAuth();
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email.trim()) {
+    if (!email.trim()) return;
+    setLoading(true);
+    setError(null);
+    const res = await resetPassword(email);
+    setLoading(false);
+    if (res.success) {
       setSubmitted(true);
+    } else {
+      setError(res.error || 'Failed to send reset link.');
     }
   };
 
@@ -26,6 +37,13 @@ export const ForgotPasswordPage: React.FC = () => {
             Enter your email and we'll send you instructions to recover your password.
           </p>
         </div>
+
+        {error && (
+          <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
+            <span>{error}</span>
+          </div>
+        )}
 
         {submitted ? (
           <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs space-y-2 text-center">
@@ -57,10 +75,20 @@ export const ForgotPasswordPage: React.FC = () => {
 
             <button
               type="submit"
-              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg shadow-pink-500/25 hover:opacity-95 transition-all"
+              disabled={loading}
+              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg shadow-pink-500/25 hover:opacity-95 disabled:opacity-50 transition-all cursor-pointer"
             >
-              <span>Send Reset Instructions</span>
-              <ArrowRight className="w-4 h-4" />
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Sending Instructions...</span>
+                </>
+              ) : (
+                <>
+                  <span>Send Reset Instructions</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </button>
 
             <div className="text-center pt-2">

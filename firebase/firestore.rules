@@ -1,0 +1,76 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: checks if the current user is an admin in user_roles collection
+    function isAdmin() {
+      return request.auth != null &&
+        (
+          exists(/databases/$(database)/documents/user_roles/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.role == 'admin'
+        );
+    }
+
+    // Profiles: users read and update their own profile; admins have full access
+    match /profiles/{userId} {
+      allow read, update: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow delete: if isAdmin();
+    }
+
+    // User Roles: CRITICAL - Only admins can read/write roles; users can read their own role
+    match /user_roles/{userId} {
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    // Categories: Public can read active categories; only admins can write
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Products: Public can read active products; only admins can write
+    match /products/{productId} {
+      allow read: if resource.data.is_active == true || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // Orders: Users read own orders; anyone/guests can create orders; only admins can update/delete
+    match /orders/{orderId} {
+      allow read: if request.auth != null && (resource.data.user_id == request.auth.uid || isAdmin());
+      allow create: if true;
+      allow update, delete: if isAdmin();
+    }
+
+    // Inventory Movements: Admins only
+    match /inventory_movements/{movementId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Coupons: Public read active; only admins can manage
+    match /coupons/{couponId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Banners: Public read active; only admins can manage
+    match /banners/{bannerId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Reviews: Public read approved; authenticated users create; admins manage
+    match /reviews/{reviewId} {
+      allow read: if resource.data.is_approved == true || isAdmin();
+      allow create: if request.auth != null;
+      allow update, delete: if isAdmin();
+    }
+
+    // Store Settings: Public read; admins write
+    match /store_settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}

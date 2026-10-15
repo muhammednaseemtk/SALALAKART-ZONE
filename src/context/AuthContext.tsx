@@ -1,17 +1,48 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { supabase, isSupabaseConfigured } from '../services/supabase';
+import {
+  supabase,
+  isSupabaseConfigured,
+  checkUserIsAdmin,
+  sendPasswordResetEmail as sendSupabasePasswordReset,
+} from '../lib/supabase';
+import {
+  auth as firebaseAuth,
+  db as firestoreDb,
+  isFirebaseConfigured,
+  checkFirebaseUserIsAdmin,
+  sendFirebasePasswordReset,
+} from '../lib/firebase';
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  onAuthStateChanged,
+} from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { UserProfile, UserRole } from '../types';
+
+export type BackendType = 'firebase' | 'supabase' | 'local';
 
 interface AuthContextType {
   user: UserProfile | null;
   isAuthenticated: boolean;
   isAdmin: boolean;
   isLoading: boolean;
+  backendType: BackendType;
+  isSupabaseConnected: boolean;
+  isFirebaseConnected: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  register: (email: string, password: string, fullName: string, phone?: string) => Promise<{ success: boolean; error?: string }>;
+  adminLogin: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (
+    email: string,
+    password: string,
+    fullName: string,
+    phone?: string
+  ) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<{ success: boolean; error?: string }>;
-  // For easy demonstration and evaluation without setting up an external mail server:
+  resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
+  // Evaluation / Demo buttons
   loginAsDemoAdmin: () => void;
   loginAsDemoCustomer: () => void;
 }
@@ -24,23 +55,67 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
+  const backendType: BackendType = isFirebaseConfigured
+    ? 'firebase'
+    : isSupabaseConfigured
+    ? 'supabase'
+    : 'local';
+
   // Initialize session
   useEffect(() => {
     let mounted = true;
 
     async function initAuth() {
       setIsLoading(true);
-      if (isSupabaseConfigured) {
+
+      if (isFirebaseConfigured) {
+        // Firebase Auth session listener handles initial and reactive state
+        const unsubscribe = onAuthStateChanged(firebaseAuth, async (fbUser) => {
+          if (!mounted) return;
+          if (fbUser) {
+            await fetchFirebaseUserProfile(fbUser.uid, fbUser.email || '');
+          } else {
+            setUser(null);
+            handleLocalSessionClear();
+          }
+          setIsLoading(false);
+        });
+
+        return () => {
+          mounted = false;
+          unsubscribe();
+        };
+      } else if (isSupabaseConfigured) {
         try {
-          const { data: { session } } = await supabase.auth.getSession();
+          const {
+            data: { session },
+          } = await supabase.auth.getSession();
           if (session?.user && mounted) {
-            await fetchUserProfile(session.user.id, session.user.email || '');
+            await fetchSupabaseUserProfile(session.user.id, session.user.email || '');
+          } else if (mounted) {
+            setUser(null);
           }
         } catch (err) {
-          console.warn('Supabase auth session error:', err);
+          console.warn('Supabase auth session initialization error:', err);
         }
+
+        const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
+          if (!mounted) return;
+          if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
+            await fetchSupabaseUserProfile(session.user.id, session.user.email || '');
+          } else if (event === 'SIGNED_OUT') {
+            handleLocalSessionClear();
+            setUser(null);
+          }
+        });
+
+        if (mounted) setIsLoading(false);
+        return () => {
+          mounted = false;
+          data.subscription.unsubscribe();
+        };
       } else {
-        // Load from local storage session
+        // Local storage demo mode
         const stored = localStorage.getItem(LOCAL_AUTH_KEY);
         if (stored && mounted) {
           try {
@@ -49,54 +124,80 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             localStorage.removeItem(LOCAL_AUTH_KEY);
           }
         }
+        if (mounted) setIsLoading(false);
       }
-      if (mounted) setIsLoading(false);
     }
 
-    initAuth();
-
-    // Supabase auth state listener
-    let subscription: { unsubscribe: () => void } | null = null;
-    if (isSupabaseConfigured) {
-      const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
-        if (event === 'SIGNED_IN' && session?.user) {
-          await fetchUserProfile(session.user.id, session.user.email || '');
-        } else if (event === 'SIGNED_OUT') {
-          handleLocalSessionClear();
-          setUser(null);
-        }
-      });
-      subscription = data.subscription;
-    }
+    const cleanupPromise = initAuth();
 
     return () => {
       mounted = false;
-      if (subscription) subscription.unsubscribe();
+      if (cleanupPromise && typeof cleanupPromise.then === 'function') {
+        cleanupPromise.then((cleanup) => {
+          if (typeof cleanup === 'function') cleanup();
+        });
+      }
     };
   }, []);
 
   const handleLocalSessionClear = () => {
     localStorage.removeItem(LOCAL_AUTH_KEY);
-    // Multi-user security: clear active customer cached cart & session
     localStorage.removeItem('salalakart_active_cart');
     localStorage.removeItem('salalakart_active_wishlist');
   };
 
-  const fetchUserProfile = async (userId: string, email: string) => {
+  /**
+   * Fetch Firestore User Profile & Role
+   */
+  const fetchFirebaseUserProfile = async (
+    userId: string,
+    email: string
+  ): Promise<UserProfile | null> => {
     try {
-      // 1. Fetch profile
+      const profileSnap = await getDoc(doc(firestoreDb, 'profiles', userId));
+      const roleSnap = await getDoc(doc(firestoreDb, 'user_roles', userId));
+
+      const isUserAdmin = (await checkFirebaseUserIsAdmin(userId)) || roleSnap.data()?.role === 'admin';
+      const role: UserRole = isUserAdmin ? 'admin' : 'customer';
+
+      const userProfile: UserProfile = {
+        id: userId,
+        email: email,
+        full_name: profileSnap.data()?.full_name || email.split('@')[0],
+        phone: profileSnap.data()?.phone || '',
+        avatar_url: profileSnap.data()?.avatar_url || '',
+        role: role,
+        created_at: profileSnap.data()?.created_at || new Date().toISOString(),
+      };
+
+      setUser(userProfile);
+      localStorage.setItem(LOCAL_AUTH_KEY, JSON.stringify(userProfile));
+      return userProfile;
+    } catch (err) {
+      console.error('Error fetching Firebase profile:', err);
+      return null;
+    }
+  };
+
+  /**
+   * Fetch Supabase User Profile & Role
+   */
+  const fetchSupabaseUserProfile = async (
+    userId: string,
+    email: string
+  ): Promise<UserProfile | null> => {
+    try {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, email, full_name, phone, avatar_url, created_at, updated_at')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
-      // 2. Fetch role
       const { data: roleData } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
 
       const role: UserRole = roleData?.role === 'admin' ? 'admin' : 'customer';
 
@@ -112,15 +213,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       setUser(userProfile);
       localStorage.setItem(LOCAL_AUTH_KEY, JSON.stringify(userProfile));
+      return userProfile;
     } catch (err) {
-      console.error('Error fetching user profile:', err);
+      console.error('Error fetching Supabase profile:', err);
+      return null;
     }
   };
 
-  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  /**
+   * General / Customer Login
+   */
+  const login = async (
+    email: string,
+    password: string
+  ): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
     const cleanEmail = email.trim().toLowerCase();
 
+    // 1. Firebase Auth Login
+    if (isFirebaseConfigured) {
+      try {
+        const cred = await signInWithEmailAndPassword(firebaseAuth, cleanEmail, password);
+        await fetchFirebaseUserProfile(cred.user.uid, cred.user.email || cleanEmail);
+        setIsLoading(false);
+        return { success: true };
+      } catch (err: unknown) {
+        setIsLoading(false);
+        const msg = err instanceof Error ? err.message : 'Firebase login failed';
+        return { success: false, error: msg };
+      }
+    }
+
+    // 2. Supabase Auth Login
     if (isSupabaseConfigured) {
       try {
         const { data, error } = await supabase.auth.signInWithPassword({
@@ -134,7 +258,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         if (data.user) {
-          await fetchUserProfile(data.user.id, data.user.email || cleanEmail);
+          await fetchSupabaseUserProfile(data.user.id, data.user.email || cleanEmail);
           setIsLoading(false);
           return { success: true };
         }
@@ -145,9 +269,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
 
-    // Local / Offline authentication fallback
-    // Check credentials against demo users or stored customer profile
+    // 3. Offline / Demo evaluation fallback
     if (cleanEmail === 'admin@salalakartzone.com') {
+      if (password !== 'admin123') {
+        setIsLoading(false);
+        return { success: false, error: 'Invalid password. (Demo: admin123)' };
+      }
       const adminProfile: UserProfile = {
         id: 'user-admin-01',
         email: 'admin@salalakartzone.com',
@@ -162,7 +289,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: true };
     }
 
-    // Default customer login
     const customerProfile: UserProfile = {
       id: `user-${cleanEmail.replace(/[^a-z0-9]/g, '_')}`,
       email: cleanEmail,
@@ -177,6 +303,123 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { success: true };
   };
 
+  /**
+   * Dedicated Admin Login:
+   * Validates credentials and verifies 'admin' role in Firestore / PostgreSQL
+   */
+  const adminLogin = async (
+    email: string,
+    password: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    setIsLoading(true);
+    const cleanEmail = email.trim().toLowerCase();
+
+    if (!cleanEmail || !password) {
+      setIsLoading(false);
+      return { success: false, error: 'Email and password are required.' };
+    }
+
+    // 1. Firebase Admin Login
+    if (isFirebaseConfigured) {
+      try {
+        const cred = await signInWithEmailAndPassword(firebaseAuth, cleanEmail, password);
+        const isAdminUser = await checkFirebaseUserIsAdmin(cred.user.uid);
+
+        if (!isAdminUser) {
+          await firebaseSignOut(firebaseAuth);
+          handleLocalSessionClear();
+          setUser(null);
+          setIsLoading(false);
+          return {
+            success: false,
+            error:
+              'Access Denied: This account is authenticated in Firebase but does NOT have administrator privileges in Firestore user_roles.',
+          };
+        }
+
+        await fetchFirebaseUserProfile(cred.user.uid, cred.user.email || cleanEmail);
+        setIsLoading(false);
+        return { success: true };
+      } catch (err: unknown) {
+        setIsLoading(false);
+        const msg = err instanceof Error ? err.message : 'Firebase admin authentication failed';
+        return { success: false, error: msg };
+      }
+    }
+
+    // 2. Supabase Admin Login
+    if (isSupabaseConfigured) {
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: cleanEmail,
+          password,
+        });
+
+        if (error) {
+          setIsLoading(false);
+          return { success: false, error: error.message };
+        }
+
+        if (!data.user) {
+          setIsLoading(false);
+          return { success: false, error: 'Authentication failed. Please verify credentials.' };
+        }
+
+        const isAdminUser = await checkUserIsAdmin(data.user.id);
+
+        if (!isAdminUser) {
+          await supabase.auth.signOut();
+          handleLocalSessionClear();
+          setUser(null);
+          setIsLoading(false);
+          return {
+            success: false,
+            error:
+              'Access Denied: This account is authenticated but does NOT have administrator privileges. Only authorized staff may access the Admin Control Center.',
+          };
+        }
+
+        await fetchSupabaseUserProfile(data.user.id, data.user.email || cleanEmail);
+        setIsLoading(false);
+        return { success: true };
+      } catch (err: unknown) {
+        setIsLoading(false);
+        const msg = err instanceof Error ? err.message : 'Admin authentication failed';
+        return { success: false, error: msg };
+      }
+    }
+
+    // 3. Offline / Demo Admin Login
+    if (cleanEmail === 'admin@salalakartzone.com') {
+      if (password !== 'admin123') {
+        setIsLoading(false);
+        return { success: false, error: 'Invalid admin password. (Demo: admin123)' };
+      }
+      const adminProfile: UserProfile = {
+        id: 'user-admin-01',
+        email: 'admin@salalakartzone.com',
+        full_name: 'Store Administrator',
+        phone: '+968 9123 4567',
+        role: 'admin',
+        created_at: new Date().toISOString(),
+      };
+      setUser(adminProfile);
+      localStorage.setItem(LOCAL_AUTH_KEY, JSON.stringify(adminProfile));
+      setIsLoading(false);
+      return { success: true };
+    }
+
+    setIsLoading(false);
+    return {
+      success: false,
+      error:
+        'Access Denied: Account not recognized as an administrator. Connect Firebase/Supabase in .env or use demo credentials.',
+    };
+  };
+
+  /**
+   * Customer Registration
+   */
   const register = async (
     email: string,
     password: string,
@@ -186,6 +429,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     const cleanEmail = email.trim().toLowerCase();
 
+    // 1. Firebase Auth Registration
+    if (isFirebaseConfigured) {
+      try {
+        const cred = await createUserWithEmailAndPassword(firebaseAuth, cleanEmail, password);
+        const newProfile: UserProfile = {
+          id: cred.user.uid,
+          email: cleanEmail,
+          full_name: fullName,
+          phone: phone || '',
+          role: 'customer',
+          created_at: new Date().toISOString(),
+        };
+
+        // Create profile & customer role in Firestore
+        await setDoc(doc(firestoreDb, 'profiles', cred.user.uid), newProfile);
+        await setDoc(doc(firestoreDb, 'user_roles', cred.user.uid), {
+          user_id: cred.user.uid,
+          role: 'customer',
+          created_at: new Date().toISOString(),
+        });
+
+        setUser(newProfile);
+        localStorage.setItem(LOCAL_AUTH_KEY, JSON.stringify(newProfile));
+        setIsLoading(false);
+        return { success: true };
+      } catch (err: unknown) {
+        setIsLoading(false);
+        const msg = err instanceof Error ? err.message : 'Firebase registration failed';
+        return { success: false, error: msg };
+      }
+    }
+
+    // 2. Supabase Auth Registration
     if (isSupabaseConfigured) {
       try {
         const { data, error } = await supabase.auth.signUp({
@@ -205,7 +481,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         if (data.user) {
-          await fetchUserProfile(data.user.id, data.user.email || cleanEmail);
+          await fetchSupabaseUserProfile(data.user.id, data.user.email || cleanEmail);
           setIsLoading(false);
           return { success: true };
         }
@@ -216,13 +492,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
 
-    // Offline / Local registration
+    // 3. Local Registration
     const newProfile: UserProfile = {
       id: `cust-${Date.now()}`,
       email: cleanEmail,
       full_name: fullName,
       phone: phone || '',
-      role: 'customer', // strictly customer
+      role: 'customer',
       created_at: new Date().toISOString(),
     };
     setUser(newProfile);
@@ -231,8 +507,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { success: true };
   };
 
+  /**
+   * Password Reset Flow
+   */
+  const resetPassword = async (
+    email: string
+  ): Promise<{ success: boolean; error?: string }> => {
+    if (isFirebaseConfigured) {
+      return sendFirebasePasswordReset(email);
+    }
+    if (isSupabaseConfigured) {
+      return sendSupabasePasswordReset(email);
+    }
+    return { success: true };
+  };
+
   const logout = async () => {
     setIsLoading(true);
+    if (isFirebaseConfigured) {
+      try {
+        await firebaseSignOut(firebaseAuth);
+      } catch (err) {
+        console.warn('Firebase signOut error:', err);
+      }
+    }
     if (isSupabaseConfigured) {
       try {
         await supabase.auth.signOut();
@@ -245,12 +543,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(false);
   };
 
-  const updateProfile = async (updates: Partial<UserProfile>): Promise<{ success: boolean; error?: string }> => {
+  const updateProfile = async (
+    updates: Partial<UserProfile>
+  ): Promise<{ success: boolean; error?: string }> => {
     if (!user) return { success: false, error: 'Not authenticated' };
 
-    const updated = { ...user, ...updates };
+    const { role: ignoredRole, ...safeUpdates } = updates;
+    const updated = { ...user, ...safeUpdates };
     setUser(updated);
     localStorage.setItem(LOCAL_AUTH_KEY, JSON.stringify(updated));
+
+    if (isFirebaseConfigured) {
+      try {
+        await setDoc(doc(firestoreDb, 'profiles', user.id), safeUpdates, { merge: true });
+      } catch (err) {
+        console.warn('Error updating Firebase profile:', err);
+      }
+    }
 
     if (isSupabaseConfigured) {
       try {
@@ -304,10 +613,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAuthenticated: !!user,
         isAdmin: user?.role === 'admin',
         isLoading,
+        backendType,
+        isSupabaseConnected: isSupabaseConfigured,
+        isFirebaseConnected: isFirebaseConfigured,
         login,
+        adminLogin,
         register,
         logout,
         updateProfile,
+        resetPassword,
         loginAsDemoAdmin,
         loginAsDemoCustomer,
       }}

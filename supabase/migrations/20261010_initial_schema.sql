@@ -468,8 +468,8 @@ CREATE POLICY "Admins manage shipping methods" ON public.shipping_methods
 -- 12. ORDERS & ORDER ITEMS
 CREATE POLICY "Users can view own orders" ON public.orders
   FOR SELECT USING (auth.uid() = user_id OR public.is_admin());
-CREATE POLICY "Authenticated users can create orders" ON public.orders
-  FOR INSERT WITH CHECK (auth.uid() = user_id OR public.is_admin());
+CREATE POLICY "Users and guests can create orders" ON public.orders
+  FOR INSERT WITH CHECK (auth.uid() = user_id OR public.is_admin() OR user_id IS NULL);
 CREATE POLICY "Admins can update orders" ON public.orders
   FOR UPDATE USING (public.is_admin());
 
@@ -477,12 +477,22 @@ CREATE POLICY "Users view own order items" ON public.order_items
   FOR SELECT USING (
     EXISTS (SELECT 1 FROM public.orders WHERE orders.id = order_items.order_id AND (orders.user_id = auth.uid() OR public.is_admin()))
   );
-CREATE POLICY "Users can create order items" ON public.order_items
+CREATE POLICY "Users and guests can create order items" ON public.order_items
   FOR INSERT WITH CHECK (
-    EXISTS (SELECT 1 FROM public.orders WHERE orders.id = order_items.order_id AND (orders.user_id = auth.uid() OR public.is_admin()))
+    EXISTS (SELECT 1 FROM public.orders WHERE orders.id = order_items.order_id AND (orders.user_id = auth.uid() OR public.is_admin() OR orders.user_id IS NULL))
   );
 CREATE POLICY "Admins manage order items" ON public.order_items
   FOR ALL USING (public.is_admin());
+
+-- 12b. PAYMENTS
+CREATE POLICY "Admins manage payments" ON public.payments
+  FOR ALL USING (public.is_admin());
+CREATE POLICY "Users view own payments" ON public.payments
+  FOR SELECT USING (
+    EXISTS (SELECT 1 FROM public.orders WHERE orders.id = payments.order_id AND (orders.user_id = auth.uid() OR public.is_admin()))
+  );
+CREATE POLICY "Allow creating payment records" ON public.payments
+  FOR INSERT WITH CHECK (true);
 
 -- 13. REVIEWS
 CREATE POLICY "Public view approved reviews" ON public.reviews

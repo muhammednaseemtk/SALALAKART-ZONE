@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { api } from '../../services/api';
 import { Product, Category, ProductVariant, ProductImage } from '../../types';
+import { uploadProductImage } from '../../lib/supabase';
 import {
   Package,
   Plus,
@@ -12,6 +13,8 @@ import {
   AlertCircle,
   Image as ImageIcon,
   Layers,
+  Upload,
+  Loader2,
 } from 'lucide-react';
 
 export const AdminProductFormPage: React.FC = () => {
@@ -22,6 +25,7 @@ export const AdminProductFormPage: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState(false);
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -449,7 +453,7 @@ export const AdminProductFormPage: React.FC = () => {
 
           <div className="space-y-3">
             {images.map((img, idx) => (
-              <div key={img.id} className="flex gap-3 items-center p-3 rounded-2xl bg-slate-50 border border-slate-200">
+              <div key={img.id} className="flex flex-col sm:flex-row gap-3 items-start sm:items-center p-3 rounded-2xl bg-slate-50 border border-slate-200">
                 <img
                   src={img.image_url}
                   alt=""
@@ -464,17 +468,47 @@ export const AdminProductFormPage: React.FC = () => {
                     next[idx].image_url = e.target.value;
                     setImages(next);
                   }}
-                  className="flex-1 text-xs p-2.5 rounded-xl border border-slate-200 bg-white"
-                  placeholder="https://..."
+                  className="flex-1 text-xs p-2.5 rounded-xl border border-slate-200 bg-white w-full"
+                  placeholder="https://... or click Upload File"
                 />
-                <button
-                  type="button"
-                  onClick={() => handleRemoveImage(img.id)}
-                  disabled={images.length === 1}
-                  className="p-2 text-slate-400 hover:text-rose-600 disabled:opacity-30"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                  <label className="px-3 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold text-xs flex items-center gap-1.5 cursor-pointer shrink-0 transition-colors">
+                    {uploadingIndex === idx ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-purple-600" />
+                    ) : (
+                      <Upload className="w-4 h-4 text-purple-600" />
+                    )}
+                    <span>{uploadingIndex === idx ? 'Uploading...' : 'Upload File'}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={uploadingIndex === idx}
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        setUploadingIndex(idx);
+                        const { url, error } = await uploadProductImage(file);
+                        setUploadingIndex(null);
+                        if (url) {
+                          const next = [...images];
+                          next[idx].image_url = url;
+                          setImages(next);
+                        } else if (error) {
+                          alert(`Image upload failed: ${error}`);
+                        }
+                      }}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveImage(img.id)}
+                    disabled={images.length === 1}
+                    className="p-2 text-slate-400 hover:text-rose-600 disabled:opacity-30 cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>

@@ -1,6 +1,5 @@
 {
   "name": "salalakart-zone",
-
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -14,6 +13,7 @@
     "@supabase/supabase-js": "^2.117.3",
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
+    "firebase": "^13.0.0",
     "lucide-react": "^1.55.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",

@@ -8,7 +8,7 @@ interface AdminHeaderProps {
 }
 
 export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, backendType } = useAuth();
 
   return (
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-8 py-3 flex items-center justify-between gap-4 shadow-2xs">
@@ -33,7 +33,11 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
         <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border border-slate-200 bg-slate-50 text-slate-600">
           <Database className="w-3.5 h-3.5 text-pink-500" />
           <span>
-            {isSupabaseConfigured ? 'Connected: Supabase Cloud' : 'Storage: Persistent Local Store'}
+            {backendType === 'firebase'
+              ? 'Connected: Google Firebase'
+              : backendType === 'supabase'
+              ? 'Connected: Supabase Cloud'
+              : 'Storage: Persistent Local Store'}
           </span>
         </div>
 
