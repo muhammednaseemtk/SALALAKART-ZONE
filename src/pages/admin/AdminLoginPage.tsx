@@ -8,7 +8,6 @@ import {
   ShieldAlert,
   ArrowRight,
   ShieldCheck,
-  KeyRound,
   Eye,
   EyeOff,
   Loader2,
@@ -21,7 +20,6 @@ export const AdminLoginPage: React.FC = () => {
   const {
     adminLogin,
     resetPassword,
-    loginAsDemoAdmin,
     isAdmin,
     isAuthenticated,
     isSupabaseConnected,
@@ -276,27 +274,6 @@ export const AdminLoginPage: React.FC = () => {
             )}
           </button>
         </form>
-
-        {/* One-Click Evaluation Demo Access (For testing without live mailer) */}
-        <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">
-              Evaluation & Preview Access
-            </span>
-            <span className="text-[10px] text-purple-400 font-mono">Demo Mode</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => {
-              loginAsDemoAdmin();
-              navigate('/admin/dashboard', { replace: true });
-            }}
-            className="w-full py-2.5 px-4 rounded-xl bg-purple-600/20 border border-purple-500/40 hover:bg-purple-600/30 text-purple-200 font-bold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
-          >
-            <KeyRound className="w-4 h-4 text-purple-400" />
-            <span>Instant Login as Demo Admin</span>
-          </button>
-        </div>
 
         {/* Return to Customer Storefront */}
         <div className="text-center pt-1">
