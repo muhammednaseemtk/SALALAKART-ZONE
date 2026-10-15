@@ -16,47 +16,47 @@ export const Footer: React.FC = () => {
   };
 
   return (
-    <footer className="bg-slate-900 text-slate-300 pt-16 pb-8 border-t border-slate-800">
+    <footer className="bg-[#033d2f] dark:bg-black text-slate-300 pt-16 pb-8 border-t border-[#022920] dark:border-white/10 transition-colors duration-200">
       {/* Top Value Propositions */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 border-b border-slate-800/80">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 border-b border-white/10">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-800/50 border border-slate-800">
-            <div className="w-12 h-12 rounded-xl bg-pink-500/10 text-pink-400 flex items-center justify-center">
+          <div className="flex items-center gap-4 p-4 rounded-2xl bg-black/20 dark:bg-[#033d2f]/40 border border-white/10">
+            <div className="w-12 h-12 rounded-xl bg-[#8fe40f]/15 text-[#8fe40f] flex items-center justify-center">
               <Truck className="w-6 h-6" />
             </div>
             <div>
               <h4 className="font-bold text-white text-sm">Fast Reliable Delivery</h4>
-              <p className="text-xs text-slate-400">Directly to your doorstep</p>
+              <p className="text-xs text-[#f2f3ed]/80">Directly to your doorstep</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-800/50 border border-slate-800">
-            <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+          <div className="flex items-center gap-4 p-4 rounded-2xl bg-black/20 dark:bg-[#033d2f]/40 border border-white/10">
+            <div className="w-12 h-12 rounded-xl bg-[#8fe40f]/15 text-[#8fe40f] flex items-center justify-center">
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
               <h4 className="font-bold text-white text-sm">100% Genuine Quality</h4>
-              <p className="text-xs text-slate-400">Safety tested toys & gadgets</p>
+              <p className="text-xs text-[#f2f3ed]/80">Safety tested toys & gadgets</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-800/50 border border-slate-800">
-            <div className="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center">
+          <div className="flex items-center gap-4 p-4 rounded-2xl bg-black/20 dark:bg-[#033d2f]/40 border border-white/10">
+            <div className="w-12 h-12 rounded-xl bg-[#8fe40f]/15 text-[#8fe40f] flex items-center justify-center">
               <Heart className="w-6 h-6" />
             </div>
             <div>
               <h4 className="font-bold text-white text-sm">Curated Gifts & Toys</h4>
-              <p className="text-xs text-slate-400">Handpicked for memorable smiles</p>
+              <p className="text-xs text-[#f2f3ed]/80">Handpicked for memorable smiles</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-800/50 border border-slate-800">
-            <div className="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center">
+          <div className="flex items-center gap-4 p-4 rounded-2xl bg-black/20 dark:bg-[#033d2f]/40 border border-white/10">
+            <div className="w-12 h-12 rounded-xl bg-[#8fe40f]/15 text-[#8fe40f] flex items-center justify-center">
               <Clock className="w-6 h-6" />
             </div>
             <div>
               <h4 className="font-bold text-white text-sm">Friendly Support</h4>
-              <p className="text-xs text-slate-400">Available 7 days a week</p>
+              <p className="text-xs text-[#f2f3ed]/80">Available 7 days a week</p>
             </div>
           </div>
         </div>
@@ -67,7 +67,7 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
           {/* Brand Info */}
           <div className="lg:col-span-2 space-y-4">
-            <div className="bg-white/95 p-3 rounded-2xl inline-block shadow-md">
+            <div className="bg-white/95 dark:bg-black/50 p-3 rounded-2xl inline-block shadow-md border border-slate-200/80 dark:border-white/10">
               <BrandLogo size="md" />
             </div>
             <p className="text-sm text-slate-400 leading-relaxed max-w-sm">
@@ -134,34 +134,34 @@ export const Footer: React.FC = () => {
           {/* Customer Service & Policies */}
           <div>
             <h4 className="font-brand font-bold text-white text-base mb-4 tracking-wide">Customer Care</h4>
-            <ul className="space-y-2.5 text-xs text-slate-400">
+            <ul className="space-y-2.5 text-xs text-slate-300">
               <li>
-                <Link to="/about" className="hover:text-pink-400 transition-colors">
+                <Link to="/about" className="hover:text-[#8fe40f] transition-colors">
                   About Salalakart Zone
                 </Link>
               </li>
               <li>
-                <Link to="/contact" className="hover:text-pink-400 transition-colors">
+                <Link to="/contact" className="hover:text-[#8fe40f] transition-colors">
                   Contact Us & Store Map
                 </Link>
               </li>
               <li>
-                <Link to="/shipping-policy" className="hover:text-pink-400 transition-colors">
+                <Link to="/shipping-policy" className="hover:text-[#8fe40f] transition-colors">
                   Shipping & Delivery
                 </Link>
               </li>
               <li>
-                <Link to="/return-policy" className="hover:text-pink-400 transition-colors">
+                <Link to="/return-policy" className="hover:text-[#8fe40f] transition-colors">
                   Returns & Refunds
                 </Link>
               </li>
               <li>
-                <Link to="/privacy-policy" className="hover:text-pink-400 transition-colors">
+                <Link to="/privacy-policy" className="hover:text-[#8fe40f] transition-colors">
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link to="/terms-and-conditions" className="hover:text-pink-400 transition-colors">
+                <Link to="/terms-and-conditions" className="hover:text-[#8fe40f] transition-colors">
                   Terms & Conditions
                 </Link>
               </li>
@@ -171,7 +171,7 @@ export const Footer: React.FC = () => {
           {/* Newsletter Subscription */}
           <div className="space-y-4">
             <h4 className="font-brand font-bold text-white text-base tracking-wide">Stay In The Loop</h4>
-            <p className="text-xs text-slate-400 leading-relaxed">
+            <p className="text-xs text-[#f2f3ed]/80 leading-relaxed">
               Subscribe for VIP discounts, festive toy arrivals and special coupon codes.
             </p>
             {subscribed ? (
@@ -188,29 +188,29 @@ export const Footer: React.FC = () => {
                     placeholder="Enter your email"
                     value={newsletterEmail}
                     onChange={(e) => setNewsletterEmail(e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl py-2.5 pl-3.5 pr-10 text-xs text-white placeholder-slate-500 focus:outline-pink-500"
+                    className="w-full bg-black/40 border border-white/20 rounded-xl py-2.5 pl-3.5 pr-10 text-xs text-white placeholder-slate-400 focus:outline-[#8fe40f] focus:border-[#8fe40f]"
                   />
                   <button
                     type="submit"
-                    className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 bg-gradient-to-r from-pink-500 to-purple-600 rounded-lg text-white hover:opacity-90"
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 bg-[#8fe40f] hover:bg-[#a2f22b] text-[#033d2f] font-bold rounded-lg transition-colors cursor-pointer"
                     aria-label="Subscribe"
                   >
                     <Send className="w-3.5 h-3.5" />
                   </button>
                 </div>
-                <p className="text-[10px] text-slate-500">We respect your privacy. No spam ever.</p>
+                <p className="text-[10px] text-[#f2f3ed]/60">We respect your privacy. No spam ever.</p>
               </form>
             )}
 
             <div className="pt-2">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
+              <span className="text-[11px] font-bold text-[#f2f3ed]/80 uppercase tracking-wider block mb-2">
                 We Accept
               </span>
-              <div className="flex flex-wrap gap-2 text-xs text-slate-400">
-                <span className="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-[11px] font-bold">
+              <div className="flex flex-wrap gap-2 text-xs text-slate-300">
+                <span className="px-2 py-1 rounded bg-black/40 border border-white/10 text-[11px] font-bold">
                   Cash on Delivery
                 </span>
-                <span className="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-[11px] font-bold">
+                <span className="px-2 py-1 rounded bg-black/40 border border-white/10 text-[11px] font-bold">
                   UPI / Cards
                 </span>
                 <span className="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-[11px] font-bold">

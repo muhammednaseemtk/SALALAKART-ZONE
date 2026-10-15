@@ -1,29 +1,303 @@
 @import "tailwindcss";
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, .dark, .dark *));
 
 @theme {
   --font-brand: "Fredoka", cursive, sans-serif;
   --font-sans: "Outfit", "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
-  --color-brand-pink: #ec4899;
-  --color-brand-purple: #8b5cf6;
-  --color-brand-cyan: #06b6d4;
-  --color-brand-blue: #0284c7;
-  --color-brand-yellow: #f59e0b;
-  --color-brand-orange: #f97316;
-  --color-brand-green: #10b981;
+  /* Official Brand Colors */
+  --color-brand-darkgreen: #033d2f;
+  --color-brand-brightgreen: #8fe40f;
+  --color-brand-white: #ffffff;
+  --color-brand-lightbg: #f2f3ed;
+  --color-brand-black: #000000;
 }
 
+/* ==========================================================================
+   Light Mode Theme Variables & Base Styles (Default for first-time visitors)
+   ========================================================================== */
 :root {
   font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
   color-scheme: light;
+
+  /* Brand Palette Tokens */
+  --brand-darkgreen: #033d2f;
+  --brand-brightgreen: #8fe40f;
+  --brand-white: #ffffff;
+  --brand-lightbg: #f2f3ed;
+  --brand-black: #000000;
+
+  /* Semantic UI Tokens - Light */
+  --site-bg: #f2f3ed;
+  --site-surface: #ffffff;
+  --site-text: #033d2f;
+  --site-text-muted: #3d524a;
+  --site-border: #dce0d4;
+
+  /* Tailwind Palette Overrides - Light Mode */
+  --color-pink-50: #f2f3ed;
+  --color-pink-100: #e4eadc;
+  --color-pink-200: #c9d8bc;
+  --color-pink-300: #8fe40f;
+  --color-pink-400: #8fe40f;
+  --color-pink-500: #033d2f;
+  --color-pink-600: #033d2f;
+  --color-pink-700: #022920;
+
+  --color-purple-50: #f2f3ed;
+  --color-purple-100: #e4eadc;
+  --color-purple-200: #c9d8bc;
+  --color-purple-500: #033d2f;
+  --color-purple-600: #033d2f;
+  --color-purple-700: #022920;
+
+  --color-cyan-50: #f2f3ed;
+  --color-cyan-500: #8fe40f;
+  --color-cyan-600: #033d2f;
+
+  --color-slate-50: #f2f3ed;
+  --color-slate-100: #e7ece2;
+  --color-slate-200: #d6ded0;
+  --color-slate-300: #b5c3ae;
+  --color-slate-400: #687d72;
+  --color-slate-500: #44594f;
+  --color-slate-600: #2a3e35;
+  --color-slate-700: #1b3028;
+  --color-slate-800: #0c241c;
+  --color-slate-900: #033d2f;
+  --color-slate-950: #000000;
 }
 
 body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background-color: #f8fafc;
-  color: #0f172a;
+  background-color: var(--site-bg);
+  color: var(--site-text);
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* ==========================================================================
+   Dark Mode Theme Variables & Base Styles
+   ========================================================================== */
+html.dark,
+[data-theme="dark"],
+.dark {
+  color-scheme: dark;
+
+  /* Semantic UI Tokens - Dark */
+  --site-bg: #000000;
+  --site-surface: #033d2f;
+  --site-text: #ffffff;
+  --site-text-muted: #b0c2b7;
+  --site-border: rgba(143, 228, 15, 0.22);
+
+  /* Tailwind Palette Overrides - Dark Mode */
+  --color-pink-50: rgba(143, 228, 15, 0.12);
+  --color-pink-100: rgba(143, 228, 15, 0.22);
+  --color-pink-200: rgba(143, 228, 15, 0.32);
+  --color-pink-300: #8fe40f;
+  --color-pink-400: #8fe40f;
+  --color-pink-500: #8fe40f;
+  --color-pink-600: #8fe40f;
+  --color-pink-700: #7bce08;
+
+  --color-purple-50: rgba(143, 228, 15, 0.12);
+  --color-purple-100: rgba(143, 228, 15, 0.22);
+  --color-purple-500: #8fe40f;
+  --color-purple-600: #8fe40f;
+  --color-purple-700: #7bce08;
+
+  --color-cyan-50: rgba(143, 228, 15, 0.12);
+  --color-cyan-500: #8fe40f;
+  --color-cyan-600: #8fe40f;
+
+  --color-slate-50: #000000;
+  --color-slate-100: #033d2f;
+  --color-slate-200: rgba(143, 228, 15, 0.22);
+  --color-slate-300: rgba(143, 228, 15, 0.35);
+  --color-slate-400: #9cb0a5;
+  --color-slate-500: #b5c7bd;
+  --color-slate-600: #d6e2dc;
+  --color-slate-700: #f2f3ed;
+  --color-slate-800: #ffffff;
+  --color-slate-900: #000000;
+  --color-slate-950: #000000;
+}
+
+html.dark body,
+[data-theme="dark"] body {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   Comprehensive Dark Mode Surface & Text Hierarchies
+   ========================================================================== */
+html.dark .bg-white,
+[data-theme="dark"] .bg-white {
+  background-color: #033d2f !important;
+  border-color: rgba(143, 228, 15, 0.22) !important;
+  color: #ffffff;
+}
+
+html.dark .bg-white\/95,
+[data-theme="dark"] .bg-white\/95 {
+  background-color: rgba(0, 0, 0, 0.95) !important;
+  border-color: rgba(143, 228, 15, 0.22) !important;
+}
+
+html.dark .bg-slate-50,
+[data-theme="dark"] .bg-slate-50 {
+  background-color: #000000 !important;
+}
+
+html.dark .bg-slate-100,
+[data-theme="dark"] .bg-slate-100 {
+  background-color: #022920 !important;
+}
+
+/* Text Hierarchy in Dark Mode */
+html.dark .text-slate-900,
+html.dark .text-slate-800,
+[data-theme="dark"] .text-slate-900,
+[data-theme="dark"] .text-slate-800 {
+  color: #ffffff !important;
+}
+
+html.dark .text-slate-700,
+html.dark .text-slate-600,
+[data-theme="dark"] .text-slate-700,
+[data-theme="dark"] .text-slate-600 {
+  color: #f2f3ed !important;
+}
+
+html.dark .text-slate-500,
+html.dark .text-slate-400,
+[data-theme="dark"] .text-slate-500,
+[data-theme="dark"] .text-slate-400 {
+  color: #a4b6ac !important;
+}
+
+/* Primary Action Buttons in Dark Mode */
+html.dark button.bg-pink-600,
+html.dark a.bg-pink-600,
+[data-theme="dark"] button.bg-pink-600,
+[data-theme="dark"] a.bg-pink-600,
+html.dark button.bg-purple-600,
+html.dark a.bg-purple-600,
+[data-theme="dark"] button.bg-purple-600,
+[data-theme="dark"] a.bg-purple-600 {
+  background-color: #8fe40f !important;
+  color: #033d2f !important;
+  font-weight: 700 !important;
+}
+
+html.dark .from-pink-500.to-purple-600,
+html.dark .from-pink-600.to-purple-600,
+[data-theme="dark"] .from-pink-500.to-purple-600,
+[data-theme="dark"] .from-pink-600.to-purple-600 {
+  --tw-gradient-from: #8fe40f !important;
+  --tw-gradient-to: #7ece0c !important;
+  color: #033d2f !important;
+  font-weight: 700 !important;
+}
+
+/* Light mode primary gradient */
+:root:not(.dark) .from-pink-500.to-purple-600,
+:root:not(.dark) .from-pink-600.to-purple-600 {
+  --tw-gradient-from: #033d2f !important;
+  --tw-gradient-to: #055944 !important;
+  color: #ffffff !important;
+}
+
+/* Form Inputs & Form Elements */
+input:not([type="checkbox"]):not([type="radio"]),
+textarea,
+select {
+  background-color: #ffffff;
+  border-color: #dce0d4;
+  color: #033d2f;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #033d2f !important;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(143, 228, 15, 0.45) !important;
+}
+
+html.dark input:not([type="checkbox"]):not([type="radio"]),
+html.dark textarea,
+html.dark select,
+[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]),
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  background-color: #000000 !important;
+  border-color: rgba(143, 228, 15, 0.35) !important;
+  color: #ffffff !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder,
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: #7d9186 !important;
+}
+
+html.dark input:focus,
+html.dark textarea:focus,
+html.dark select:focus,
+[data-theme="dark"] input:focus,
+[data-theme="dark"] textarea:focus,
+[data-theme="dark"] select:focus {
+  border-color: #8fe40f !important;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(143, 228, 15, 0.45) !important;
+}
+
+/* Tables in Dark Mode (Admin tables, Order details, etc.) */
+html.dark table th,
+[data-theme="dark"] table th {
+  background-color: #000000 !important;
+  color: #8fe40f !important;
+  border-color: rgba(143, 228, 15, 0.2) !important;
+}
+
+html.dark table td,
+[data-theme="dark"] table td {
+  border-color: rgba(143, 228, 15, 0.15) !important;
+  color: #f2f3ed !important;
+}
+
+html.dark table tbody tr:hover,
+[data-theme="dark"] table tbody tr:hover {
+  background-color: rgba(143, 228, 15, 0.08) !important;
+}
+
+/* Modals & Dialogs in Dark Mode */
+html.dark dialog,
+[data-theme="dark"] dialog,
+html.dark [role="dialog"],
+[data-theme="dark"] [role="dialog"] {
+  background-color: #033d2f !important;
+  border-color: rgba(143, 228, 15, 0.25) !important;
+  color: #ffffff !important;
+}
+
+/* Glassmorphism utility */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(3, 61, 47, 0.15);
+}
+
+html.dark .glass-panel,
+[data-theme="dark"] .glass-panel {
+  background: rgba(3, 61, 47, 0.85);
+  border: 1px solid rgba(143, 228, 15, 0.25);
 }
 
 /* Brand playful font utility */
@@ -37,7 +311,7 @@ body {
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: var(--site-bg);
 }
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
@@ -47,12 +321,14 @@ body {
   background: #94a3b8;
 }
 
-/* Glassmorphism utility */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+html.dark ::-webkit-scrollbar-thumb,
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: #033d2f;
+  border: 1px solid rgba(143, 228, 15, 0.3);
+}
+html.dark ::-webkit-scrollbar-thumb:hover,
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: #8fe40f;
 }
 
 /* Print styling for invoices */

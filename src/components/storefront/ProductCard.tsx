@@ -45,9 +45,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
   };
 
   return (
-    <div className="group relative bg-white rounded-3xl p-3 border border-slate-100 hover:border-pink-200 shadow-xs hover:shadow-xl hover:shadow-pink-500/5 transition-all duration-300 flex flex-col justify-between">
+    <div className="group relative bg-white dark:bg-[#033d2f] rounded-3xl p-3 border border-slate-100 dark:border-white/10 hover:border-pink-200 dark:hover:border-[#8fe40f]/40 shadow-xs hover:shadow-xl hover:shadow-black/20 transition-all duration-300 flex flex-col justify-between">
       {/* Product Image Area */}
-      <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-slate-100 mb-3.5">
+      <div className="relative aspect-square w-full rounded-2xl overflow-hidden bg-slate-100 dark:bg-black/30 mb-3.5">
         <Link to={`/product/${product.slug}`} className="block w-full h-full">
           <img
             src={primaryImage}
@@ -96,7 +96,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
             className={`w-8 h-8 rounded-full flex items-center justify-center transition-all shadow-md backdrop-blur-md ${
               inWishlist
                 ? 'bg-rose-500 text-white'
-                : 'bg-white/90 text-slate-600 hover:text-rose-500 hover:bg-white'
+                : 'bg-white/90 dark:bg-black/70 text-slate-700 dark:text-white hover:text-rose-500 hover:bg-white dark:hover:bg-black'
             }`}
             title={inWishlist ? 'Remove from wishlist' : 'Save to wishlist'}
             aria-label="Wishlist"
@@ -111,7 +111,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
                 e.stopPropagation();
                 onQuickView(product);
               }}
-              className="w-8 h-8 rounded-full bg-white/90 hover:bg-white text-slate-600 hover:text-pink-600 flex items-center justify-center transition-all shadow-md backdrop-blur-md opacity-0 group-hover:opacity-100"
+              className="w-8 h-8 rounded-full bg-white/90 dark:bg-black/70 hover:bg-white dark:hover:bg-black text-slate-700 dark:text-white hover:text-[#8fe40f] flex items-center justify-center transition-all shadow-md backdrop-blur-md opacity-0 group-hover:opacity-100"
               title="Quick preview"
               aria-label="Quick View"
             >

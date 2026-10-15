@@ -6,6 +6,9 @@ export const AboutPage: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 min-h-screen">
       <div className="max-w-3xl mx-auto text-center space-y-4 mb-16">
+        <div className="flex justify-center mb-4">
+          <BrandLogo size="lg" />
+        </div>
         <span className="text-xs font-bold uppercase tracking-wider text-pink-600 bg-pink-50 px-3 py-1 rounded-full">
           Our Brand Story
         </span>

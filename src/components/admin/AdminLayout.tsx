@@ -55,7 +55,7 @@ export const AdminLayout: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-100 dark:bg-black text-slate-900 dark:text-white flex flex-col font-sans transition-colors duration-200">
       <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="lg:pl-64 flex flex-col flex-1 min-w-0">

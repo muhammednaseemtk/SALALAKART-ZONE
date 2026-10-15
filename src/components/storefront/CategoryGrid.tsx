@@ -14,14 +14,14 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
   title = 'Shop by Category',
   subtitle = 'Find the perfect toys, tech gadgets and gifts for every occasion',
 }) => {
-  // Vibrant colorful card accents inspired by the brand logo
+  // Brand-aligned card accents using the brand colour palette
   const accentGradients = [
-    'from-pink-500/10 to-rose-500/20 text-pink-700 border-pink-200/60',
-    'from-purple-500/10 to-indigo-500/20 text-purple-700 border-purple-200/60',
-    'from-cyan-500/10 to-sky-500/20 text-cyan-700 border-cyan-200/60',
-    'from-amber-500/10 to-yellow-500/20 text-amber-800 border-amber-200/60',
-    'from-orange-500/10 to-red-500/20 text-orange-700 border-orange-200/60',
-    'from-emerald-500/10 to-teal-500/20 text-emerald-700 border-emerald-200/60',
+    'from-[#033d2f]/10 to-[#8fe40f]/20 text-[#033d2f] dark:text-[#8fe40f] border-[#033d2f]/20 dark:border-[#8fe40f]/30',
+    'from-[#8fe40f]/15 to-[#033d2f]/10 text-[#033d2f] dark:text-[#8fe40f] border-[#8fe40f]/30 dark:border-[#8fe40f]/30',
+    'from-[#033d2f]/15 to-[#033d2f]/5 text-[#033d2f] dark:text-[#ffffff] border-[#033d2f]/20 dark:border-[#8fe40f]/20',
+    'from-[#8fe40f]/20 to-[#8fe40f]/5 text-[#033d2f] dark:text-[#8fe40f] border-[#8fe40f]/40 dark:border-[#8fe40f]/40',
+    'from-[#033d2f]/10 to-[#8fe40f]/15 text-[#033d2f] dark:text-[#8fe40f] border-[#033d2f]/20 dark:border-[#8fe40f]/30',
+    'from-[#8fe40f]/10 to-[#033d2f]/20 text-[#033d2f] dark:text-[#ffffff] border-[#8fe40f]/30 dark:border-[#8fe40f]/30',
   ];
 
   return (
@@ -55,17 +55,17 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
               to={`/category/${cat.slug}`}
               className={`group flex flex-col items-center p-3 rounded-2xl bg-gradient-to-b ${accent} border hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-center`}
             >
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden mb-2.5 shadow-sm border-2 border-white bg-white">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden mb-2.5 shadow-sm border-2 border-white dark:border-white/20 bg-white dark:bg-black">
                 <img
                   src={cat.image_url}
                   alt={cat.name}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                 />
               </div>
-              <h3 className="font-bold text-xs sm:text-sm text-slate-800 line-clamp-1 group-hover:text-pink-600 transition-colors">
+              <h3 className="font-bold text-xs sm:text-sm text-slate-800 dark:text-white line-clamp-1 group-hover:text-pink-600 dark:group-hover:text-[#8fe40f] transition-colors">
                 {cat.name}
               </h3>
-              <span className="text-[10px] text-slate-500 font-medium mt-0.5">Explore →</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-300 font-medium mt-0.5">Explore →</span>
             </Link>
           );
         })}

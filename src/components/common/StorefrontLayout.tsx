@@ -21,7 +21,7 @@ export const StorefrontLayout: React.FC = () => {
   const { isAuthenticated } = useAuth();
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800 font-sans selection:bg-pink-500 selection:text-white pb-16 md:pb-0">
+    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-black text-slate-800 dark:text-white font-sans selection:bg-[#033d2f] selection:text-white dark:selection:bg-[#8fe40f] dark:selection:text-[#033d2f] pb-16 md:pb-0 transition-colors duration-200">
       {/* Main sticky navigation */}
       <Navbar />
 
@@ -52,13 +52,13 @@ export const StorefrontLayout: React.FC = () => {
       </a>
 
       {/* Mobile Sticky Bottom Navigation App Bar (Only visible on screens < md) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200/80 px-2 py-1.5 flex items-center justify-around shadow-lg">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-md border-t border-slate-200/80 dark:border-white/10 px-2 py-1.5 flex items-center justify-around shadow-lg">
         {/* Home */}
         <NavLink
           to="/"
           className={({ isActive }) =>
             `flex flex-col items-center justify-center py-1 px-2.5 rounded-xl text-[10px] font-bold transition-colors ${
-              isActive ? 'text-pink-600' : 'text-slate-500 hover:text-slate-900'
+              isActive ? 'text-pink-600 dark:text-[#8fe40f]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`
           }
         >

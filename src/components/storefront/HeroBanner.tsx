@@ -69,7 +69,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners }) => {
             <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 pt-2">
               <Link
                 to={current.link_url || '/shop'}
-                className="px-5 sm:px-7 py-3 sm:py-3.5 rounded-2xl bg-white text-slate-900 font-extrabold text-xs sm:text-base hover:bg-yellow-300 hover:text-slate-900 shadow-xl shadow-black/20 hover:scale-105 transition-all flex items-center gap-2 group"
+                className="px-5 sm:px-7 py-3 sm:py-3.5 rounded-2xl bg-[#8fe40f] text-[#033d2f] font-extrabold text-xs sm:text-base hover:bg-[#a2f22b] shadow-xl shadow-black/20 hover:scale-105 transition-all flex items-center gap-2 group"
               >
                 <span>{current.button_text || 'Shop Now'}</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

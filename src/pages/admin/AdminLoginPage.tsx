@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { BrandLogo } from '../../components/common/BrandLogo';
+import { ThemeToggle } from '../../components/common/ThemeToggle';
 import {
   Lock,
   Mail,
@@ -105,11 +106,14 @@ export const AdminLoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 selection:bg-purple-500 selection:text-white">
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 selection:bg-[#033d2f] selection:text-white dark:selection:bg-[#8fe40f] dark:selection:text-[#033d2f] relative">
+      <div className="absolute top-4 right-4 z-20">
+        <ThemeToggle />
+      </div>
       <div className="w-full max-w-md bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl text-white space-y-6">
         {/* Brand & Portal Header */}
         <div className="text-center space-y-3">
-          <div className="bg-white/95 p-3 rounded-2xl inline-block shadow-md">
+          <div className="bg-white/95 dark:bg-black/50 p-3 rounded-2xl inline-block shadow-md border border-slate-200/80 dark:border-white/10">
             <BrandLogo size="md" />
           </div>
           <div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { BrandLogo } from './BrandLogo';
+import { ThemeToggle } from './ThemeToggle';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
@@ -91,7 +92,7 @@ export const Navbar: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100 shadow-xs">
+    <header className="sticky top-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-md border-b border-slate-100 dark:border-white/10 shadow-xs transition-colors duration-200">
       {/* Main Header Bar */}
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3.5 flex items-center justify-between gap-2 sm:gap-4">
         {/* Left: Mobile Toggle & Brand Logo */}
@@ -195,7 +196,10 @@ export const Navbar: React.FC = () => {
         </div>
 
         {/* Right Navigation Actions */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
+          {/* Light / Dark Theme Toggle */}
+          <ThemeToggle />
+
           {/* Wishlist Icon */}
           <Link
             to="/wishlist"
@@ -367,7 +371,7 @@ export const Navbar: React.FC = () => {
       </div>
 
       {/* Category Navigation Bar */}
-      <nav className="hidden md:block border-t border-slate-100 bg-white">
+      <nav className="hidden md:block border-t border-slate-100 dark:border-white/10 bg-white dark:bg-black transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           <div className="flex items-center space-x-1 overflow-x-auto py-2 scrollbar-none text-xs font-semibold text-slate-700">
             <Link

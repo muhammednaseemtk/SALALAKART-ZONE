@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { isSupabaseConfigured } from '../../services/supabase';
+import { ThemeToggle } from '../common/ThemeToggle';
 import { Menu, LogOut, Database, UserCheck, Bell } from 'lucide-react';
 
 interface AdminHeaderProps {
@@ -18,7 +19,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
   };
 
   return (
-    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-8 py-3 flex items-center justify-between gap-4 shadow-2xs">
+    <header className="sticky top-0 z-30 bg-white/95 dark:bg-black/95 backdrop-blur-md border-b border-slate-200/80 dark:border-white/10 px-4 sm:px-8 py-3 flex items-center justify-between gap-4 shadow-2xs transition-colors duration-200">
       <div className="flex items-center gap-3">
         <button
           onClick={onToggleSidebar}
@@ -47,6 +48,9 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
               : 'Storage: Persistent Local Store'}
           </span>
         </div>
+
+        {/* Theme Toggle */}
+        <ThemeToggle />
 
         {/* Admin profile */}
         <div className="flex items-center gap-2 pl-2 border-l border-slate-200">

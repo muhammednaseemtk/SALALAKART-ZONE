@@ -50,23 +50,23 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
       )}
 
       <aside
-        className={`fixed top-0 bottom-0 left-0 w-64 bg-slate-900 text-slate-300 z-50 flex flex-col border-r border-slate-800 transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 bottom-0 left-0 w-64 bg-[#033d2f] dark:bg-black text-slate-300 z-50 flex flex-col border-r border-[#022920] dark:border-white/10 transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
         {/* Brand Header */}
-        <div className="p-5 border-b border-slate-800 flex items-center justify-between">
-          <div className="bg-white/95 p-2 rounded-xl inline-block shadow-sm">
+        <div className="p-5 border-b border-[#022920] dark:border-white/10 flex items-center justify-between">
+          <div className="bg-white/95 dark:bg-black/50 p-2 rounded-xl inline-block shadow-sm border border-slate-200/80 dark:border-white/10">
             <BrandLogo size="sm" showTagline={false} />
           </div>
-          <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">
+          <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-[#8fe40f]/20 text-[#8fe40f] border border-[#8fe40f]/30">
             Admin
           </span>
         </div>
 
         {/* Navigation list */}
         <div className="flex-1 overflow-y-auto p-3 space-y-1 scrollbar-none">
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider px-3 py-2">
+          <p className="text-[10px] font-bold text-[#8fe40f] uppercase tracking-wider px-3 py-2">
             Store Management
           </p>
           {navItems.map((item) => {
@@ -79,8 +79,8 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                     isActive
-                      ? 'bg-gradient-to-r from-pink-600 to-purple-600 text-white shadow-md shadow-pink-500/20'
-                      : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                      ? 'bg-[#8fe40f] text-[#033d2f] font-bold shadow-md shadow-black/20'
+                      : 'text-slate-300 hover:text-white hover:bg-white/10'
                   }`
                 }
               >
