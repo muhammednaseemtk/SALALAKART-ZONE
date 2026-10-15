@@ -119,15 +119,6 @@ export const INITIAL_CATEGORIES: Category[] = [
     is_active: true,
   },
   {
-    id: 'cat-offers',
-    name: 'Special Offers',
-    slug: 'special-offers',
-    description: 'Huge discounts, clearance bargains and weekend bundle specials',
-    image_url: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=600&q=80',
-    display_order: 14,
-    is_active: true,
-  },
-  {
     id: 'cat-new',
     name: 'New Arrivals',
     slug: 'new-arrivals',

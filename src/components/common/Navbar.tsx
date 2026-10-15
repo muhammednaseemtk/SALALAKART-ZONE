@@ -389,12 +389,6 @@ export const Navbar: React.FC = () => {
                 {cat.name}
               </Link>
             ))}
-            <Link
-              to="/shop?filter=offers"
-              className="px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors whitespace-nowrap font-bold"
-            >
-              ⚡ Special Offers
-            </Link>
           </div>
 
           <div className="flex items-center gap-4 text-xs font-bold text-slate-500 pl-4 border-l border-slate-100">

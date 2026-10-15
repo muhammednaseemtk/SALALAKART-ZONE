@@ -194,7 +194,7 @@ export const ShopPage: React.FC = () => {
             : selectedCategory
             ? categories.find((c) => c.slug === selectedCategory)?.name || 'Products'
             : filterParam === 'offers'
-            ? 'Special Offers & Clearance Deals'
+            ? 'Discounted Deals & Clearance'
             : 'Explore Toys, Gifts, Watches & Gadgets'}
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 mt-1">

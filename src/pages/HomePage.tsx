@@ -24,7 +24,6 @@ export const HomePage: React.FC = () => {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [watchGadgetProducts, setWatchGadgetProducts] = useState<Product[]>([]);
-  const [discountProducts, setDiscountProducts] = useState<Product[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -48,9 +47,6 @@ export const HomePage: React.FC = () => {
         setFeaturedProducts(featured.length > 0 ? featured : prodList);
         setWatchGadgetProducts(
           prodList.filter((p) => p.category_slug === 'watches' || p.category_slug === 'smart-gadgets' || p.category_slug === 'electronic-gadgets')
-        );
-        setDiscountProducts(
-          prodList.filter((p) => p.sale_price !== null && p.sale_price !== undefined && p.sale_price < p.price)
         );
         setReviews(revList);
       } catch (err) {
@@ -199,42 +195,6 @@ export const HomePage: React.FC = () => {
         </section>
       )}
 
-      {/* 6. Special Offers and Discounted Products */}
-      {discountProducts.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-14">
-          <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-8 gap-2">
-            <div>
-              <div className="flex items-center gap-1.5 text-amber-600 font-bold text-xs uppercase tracking-wider bg-amber-50 px-3 py-1 rounded-full w-fit">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                <span>Price Drops & Bargains</span>
-              </div>
-              <h2 className="font-brand font-black text-2xl sm:text-3xl text-slate-900 mt-2">
-                Special Offers & Clearances
-              </h2>
-              <p className="text-sm text-slate-500 mt-1">
-                Save big on premium toys and gadgets while stocks last
-              </p>
-            </div>
-            <Link
-              to="/shop?filter=offers"
-              className="text-xs font-bold text-pink-600 hover:text-pink-700 flex items-center gap-1 group"
-            >
-              <span>See All Offers</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-            {discountProducts.slice(0, 4).map((prod) => (
-              <ProductCard
-                key={prod.id}
-                product={prod}
-                onQuickView={(p) => setQuickViewProduct(p)}
-              />
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* 7. Customer Reviews & Community Feedback */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-16">
