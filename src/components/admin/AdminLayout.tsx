@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { AdminSidebar } from './AdminSidebar';
 import { AdminHeader } from './AdminHeader';
@@ -8,6 +8,18 @@ export const AdminLayout: React.FC = () => {
   const { user, isAuthenticated, isAdmin, isLoading } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // Protect against Back-Forward cache (bfcache) restoration after logout
+  useEffect(() => {
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted && (!isAuthenticated || !isAdmin)) {
+        navigate('/admin/login', { replace: true });
+      }
+    };
+    window.addEventListener('pageshow', handlePageShow);
+    return () => window.removeEventListener('pageshow', handlePageShow);
+  }, [isAuthenticated, isAdmin, navigate]);
 
   if (isLoading) {
     return (

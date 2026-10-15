@@ -48,6 +48,14 @@ export const AdminLoginPage: React.FC = () => {
 
   const from = (location.state as any)?.from?.pathname || '/admin/dashboard';
 
+  // Requirement 3: Strictly clear email, password, and visibility state upon route entry / logout
+  React.useEffect(() => {
+    setEmail('');
+    setPassword('');
+    setShowPassword(false);
+    setError(null);
+  }, [location.pathname, location.key]);
+
   // If already authenticated with verified admin role, redirect into dashboard
   if (isAuthenticated && isAdmin) {
     navigate(from, { replace: true });
@@ -128,26 +136,33 @@ export const AdminLoginPage: React.FC = () => {
         </div>
 
         {/* Backend Connection Status Badge */}
-        <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/60 text-xs">
-          <div className="flex items-center gap-2">
-            <Database className="w-4 h-4 text-purple-400" />
-            <span className="text-[11px] font-medium text-slate-300">Backend Status:</span>
+        <div className="p-3 rounded-2xl bg-slate-800/80 border border-slate-700/60 text-xs space-y-1.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Database className="w-4 h-4 text-purple-400" />
+              <span className="text-[11px] font-medium text-slate-300">Backend Status:</span>
+            </div>
+            {backendType === 'supabase' ? (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Supabase Connected
+              </span>
+            ) : backendType === 'firebase' ? (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                Firebase Connected
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] font-bold">
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+                Offline Evaluation Mode
+              </span>
+            )}
           </div>
-          {backendType === 'firebase' ? (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-bold">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-              Firebase Connected
-            </span>
-          ) : backendType === 'supabase' ? (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Supabase Connected
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-700 text-slate-300 border border-slate-600 text-[10px] font-bold">
-              <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
-              Local Storage Mode
-            </span>
+          {backendType === 'local' && (
+            <p className="text-[10px] text-slate-400 leading-relaxed">
+              To connect your live Supabase database, create a <code className="text-purple-300">.env</code> file with <code className="text-purple-300">VITE_SUPABASE_URL</code> and <code className="text-purple-300">VITE_SUPABASE_ANON_KEY</code>.
+            </p>
           )}
         </div>
 
@@ -166,7 +181,7 @@ export const AdminLoginPage: React.FC = () => {
             <button
               type="button"
               onClick={() => logout()}
-              className="w-full py-1.5 px-3 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 text-[11px] font-bold transition-colors"
+              className="w-full py-1.5 px-3 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 text-[11px] font-bold transition-colors cursor-pointer"
             >
               Sign Out from Customer Account
             </button>
@@ -182,7 +197,7 @@ export const AdminLoginPage: React.FC = () => {
         )}
 
         {/* Admin Login Form */}
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleLogin} autoComplete="off" className="space-y-4">
           <div>
             <label className="text-xs font-bold text-slate-300 block mb-1">
               Admin Email Address
@@ -191,13 +206,13 @@ export const AdminLoginPage: React.FC = () => {
               <input
                 type="email"
                 required
-                autoComplete="email"
+                autoComplete="off"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@salalakartzone.com"
                 className="w-full text-xs p-3 pl-10 rounded-xl bg-slate-950/80 border border-slate-700/80 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-white placeholder-slate-500 outline-none transition-all"
               />
-              <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </div>
 
@@ -210,7 +225,7 @@ export const AdminLoginPage: React.FC = () => {
                   setResetEmail(email);
                   setIsForgotModalOpen(true);
                 }}
-                className="text-[11px] text-purple-400 hover:text-purple-300 hover:underline"
+                className="text-[11px] text-purple-400 hover:text-purple-300 hover:underline cursor-pointer"
               >
                 Forgot Password?
               </button>
@@ -219,18 +234,20 @@ export const AdminLoginPage: React.FC = () => {
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
-                autoComplete="current-password"
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter admin password"
-                className="w-full text-xs p-3 pl-10 pr-10 rounded-xl bg-slate-950/80 border border-slate-700/80 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-white placeholder-slate-500 outline-none transition-all"
+                className="w-full text-xs p-3 pl-10 pr-12 rounded-xl bg-slate-950/80 border border-slate-700/80 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-white placeholder-slate-500 outline-none transition-all"
               />
-              <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1 transition-colors"
+                onClick={() => setShowPassword((prev) => !prev)}
+                onMouseDown={(e) => e.preventDefault()}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
                 title={showPassword ? 'Hide password' : 'Show password'}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer focus:outline-none focus:ring-1 focus:ring-purple-500"
               >
                 {showPassword ? (
                   <EyeOff className="w-4 h-4" />

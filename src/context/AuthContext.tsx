@@ -144,6 +144,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem(LOCAL_AUTH_KEY);
     localStorage.removeItem('salalakart_active_cart');
     localStorage.removeItem('salalakart_active_wishlist');
+    localStorage.removeItem('salalakart_admin_session');
+    try {
+      sessionStorage.clear();
+    } catch {
+      // ignore
+    }
   };
 
   /**
@@ -193,13 +199,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('id', userId)
         .maybeSingle();
 
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      const role: UserRole = roleData?.role === 'admin' ? 'admin' : 'customer';
+      // Check admin status using the robust multi-layer checkUserIsAdmin helper
+      const isUserAdmin = await checkUserIsAdmin(userId);
+      const role: UserRole = isUserAdmin ? 'admin' : 'customer';
 
       const userProfile: UserProfile = {
         id: userId,
@@ -357,7 +359,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (error) {
           setIsLoading(false);
-          return { success: false, error: error.message };
+          let userMsg = error.message;
+          const lower = (error.message || '').toLowerCase();
+          if (lower.includes('invalid login credentials') || lower.includes('invalid_grant')) {
+            userMsg = 'Invalid email or password. Please verify your credentials or click "Forgot Password?".';
+          } else if (lower.includes('email not confirmed')) {
+            userMsg = 'Email not confirmed in Supabase. Please check your inbox or confirm the user in your Supabase Auth dashboard.';
+          } else if (lower.includes('fetch') || lower.includes('network') || lower.includes('failed to fetch')) {
+            userMsg = 'Cannot reach Supabase project. Please check your VITE_SUPABASE_URL and internet connection.';
+          }
+          return { success: false, error: userMsg };
         }
 
         if (!data.user) {
@@ -375,7 +386,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           return {
             success: false,
             error:
-              'Access Denied: This account is authenticated but does NOT have administrator privileges. Only authorized staff may access the Admin Control Center.',
+              `Access Denied: Account "${cleanEmail}" is authenticated in Supabase, but lacks the "admin" role in the database. Please run setup_first_admin.sql in your Supabase SQL Editor.`,
           };
         }
 
@@ -390,14 +401,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     // 3. Offline / Demo Admin Login
-    if (cleanEmail === 'admin@salalakartzone.com') {
-      if (password !== 'admin123') {
+    const configuredAdminEmail = (import.meta.env.VITE_ADMIN_EMAIL || 'admin@salalakartzone.com').trim().toLowerCase();
+    const configuredAdminPassword = import.meta.env.VITE_ADMIN_PASSWORD || 'admin123';
+
+    if (cleanEmail === configuredAdminEmail) {
+      if (password !== configuredAdminPassword) {
         setIsLoading(false);
-        return { success: false, error: 'Invalid admin password. (Demo: admin123)' };
+        return { success: false, error: `Invalid password for administrator account "${cleanEmail}".` };
       }
       const adminProfile: UserProfile = {
         id: 'user-admin-01',
-        email: 'admin@salalakartzone.com',
+        email: configuredAdminEmail,
         full_name: 'Store Administrator',
         phone: '+968 9123 4567',
         role: 'admin',
@@ -413,7 +427,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return {
       success: false,
       error:
-        'Access Denied: Account not recognized as an administrator. Connect Firebase/Supabase in .env or use demo credentials.',
+        'Access Denied: Account not recognized as an administrator. Connect Supabase in .env or use demo credentials.',
     };
   };
 

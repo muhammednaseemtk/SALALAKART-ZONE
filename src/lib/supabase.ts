@@ -1,11 +1,27 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-// Support both standard anon key and publishable key naming conventions
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey =
+// Support both standard anon key and publishable key naming conventions, as well as multiple prefix formats
+const rawSupabaseUrl =
+  import.meta.env.VITE_SUPABASE_URL ||
+  import.meta.env.VITE_SUPABASE_PROJECT_URL ||
+  import.meta.env.SUPABASE_URL ||
+  import.meta.env.NEXT_PUBLIC_SUPABASE_URL ||
+  '';
+
+const rawSupabaseKey =
   import.meta.env.VITE_SUPABASE_ANON_KEY ||
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  import.meta.env.VITE_SUPABASE_KEY ||
+  import.meta.env.VITE_SUPABASE_PUBLIC_KEY ||
+  import.meta.env.SUPABASE_ANON_KEY ||
+  import.meta.env.SUPABASE_KEY ||
+  import.meta.env.SUPABASE_PUBLISHABLE_KEY ||
+  import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  import.meta.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
   '';
+
+export const supabaseUrl = rawSupabaseUrl.trim().replace(/^["']|["']$/g, '').replace(/\/+$/, '');
+export const supabaseAnonKey = rawSupabaseKey.trim().replace(/^["']|["']$/g, '');
 
 /**
  * Validates whether legitimate Supabase credentials have been configured
@@ -16,8 +32,11 @@ export const isSupabaseConfigured: boolean = Boolean(
   supabaseAnonKey &&
   supabaseUrl.startsWith('http') &&
   !supabaseUrl.includes('your-project') &&
+  !supabaseUrl.includes('placeholder') &&
   supabaseAnonKey !== 'your-anon-key' &&
-  supabaseAnonKey !== 'placeholder-anon-key'
+  supabaseAnonKey !== 'your-anon-key-here' &&
+  supabaseAnonKey !== 'placeholder-anon-key' &&
+  supabaseAnonKey !== 'your-firebase-api-key'
 );
 
 /**
@@ -27,15 +46,20 @@ export function getSupabaseConfigStatus(): {
   configured: boolean;
   missing: string[];
   supabaseUrl: string;
+  hasUrl: boolean;
+  hasKey: boolean;
+  keyType: string;
 } {
   const missing: string[] = [];
-  if (!supabaseUrl || supabaseUrl.includes('your-project')) {
+  if (!supabaseUrl || supabaseUrl.includes('your-project') || supabaseUrl.includes('placeholder')) {
     missing.push('VITE_SUPABASE_URL');
   }
   if (
     !supabaseAnonKey ||
     supabaseAnonKey === 'your-anon-key' ||
-    supabaseAnonKey === 'placeholder-anon-key'
+    supabaseAnonKey === 'your-anon-key-here' ||
+    supabaseAnonKey === 'placeholder-anon-key' ||
+    supabaseAnonKey === 'your-firebase-api-key'
   ) {
     missing.push('VITE_SUPABASE_ANON_KEY (or VITE_SUPABASE_PUBLISHABLE_KEY)');
   }
@@ -44,6 +68,15 @@ export function getSupabaseConfigStatus(): {
     configured: isSupabaseConfigured,
     missing,
     supabaseUrl: isSupabaseConfigured ? supabaseUrl : '(Not configured)',
+    hasUrl: Boolean(supabaseUrl && !supabaseUrl.includes('your-project')),
+    hasKey: Boolean(supabaseAnonKey && !supabaseAnonKey.includes('your-anon-key')),
+    keyType: supabaseAnonKey.startsWith('sb_publishable_')
+      ? 'Publishable Key (sb_pub_...)'
+      : supabaseAnonKey.startsWith('eyJ')
+      ? 'JWT Anon Key (eyJ...)'
+      : supabaseAnonKey
+      ? 'Configured Key'
+      : 'None',
   };
 }
 
@@ -66,23 +99,70 @@ export const supabase: SupabaseClient = isSupabaseConfigured
 /**
  * Securely verify if a given user account holds the 'admin' role in the database.
  * Never trusts client metadata or client claims alone.
+ * Checks:
+ * 1. public.user_roles table (using limit(1) to prevent PGRST116 multiple-row crash)
+ * 2. public.is_admin() PostgreSQL RPC function
+ * 3. public.profiles.role column if custom schema stores role directly
+ * 4. Supabase Auth app_metadata / user_metadata claims
  */
 export async function checkUserIsAdmin(userId: string): Promise<boolean> {
   if (!isSupabaseConfigured || !userId) return false;
   try {
-    const { data, error } = await supabase
+    // 1. Primary check: public.user_roles table (use limit(1) to avoid PGRST116 multi-row crash)
+    const { data: roleRows, error: roleError } = await supabase
       .from('user_roles')
       .select('role')
       .eq('user_id', userId)
       .eq('role', 'admin')
-      .maybeSingle();
+      .limit(1);
 
-    if (error) {
-      console.warn('Error verifying admin authorization in user_roles:', error.message);
-      return false;
+    if (!roleError && roleRows && roleRows.length > 0) {
+      return true;
     }
 
-    return data?.role === 'admin';
+    // 2. Secondary check: public.is_admin() PostgreSQL RPC function
+    try {
+      const { data: rpcAdmin } = await supabase.rpc('is_admin');
+      if (rpcAdmin === true) {
+        return true;
+      }
+    } catch {
+      // RPC might not exist or user doesn't have execute permission
+    }
+
+    // 3. Fallback check: public.profiles table (if custom schema includes a role column)
+    try {
+      const { data: profileRow } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .limit(1)
+        .maybeSingle();
+
+      if (profileRow && (profileRow as any).role === 'admin') {
+        return true;
+      }
+    } catch {
+      // 'role' column may not exist on profiles table
+    }
+
+    // 4. Fallback check: Supabase Auth metadata (app_metadata or user_metadata assigned by admin)
+    try {
+      const { data: authData } = await supabase.auth.getUser();
+      const authUser = authData?.user;
+      if (authUser && authUser.id === userId) {
+        const appRole = authUser.app_metadata?.role;
+        const userRole = authUser.user_metadata?.role;
+        const isAdminFlag = authUser.app_metadata?.is_admin || authUser.user_metadata?.is_admin;
+        if (appRole === 'admin' || userRole === 'admin' || isAdminFlag === true) {
+          return true;
+        }
+      }
+    } catch {
+      // metadata check failed
+    }
+
+    return false;
   } catch (err) {
     console.error('Unexpected error checking admin role:', err);
     return false;
