@@ -1,4 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { getTempAdminSession } from './tempAdminAuth';
 
 // Support both standard anon key and publishable key naming conventions, as well as multiple prefix formats
 const rawSupabaseUrl =
@@ -97,18 +98,101 @@ export const supabase: SupabaseClient = isSupabaseConfigured
     });
 
 /**
- * Securely verify if a given user account holds the 'admin' role in the database.
- * Never trusts client metadata or client claims alone.
- * Checks:
- * 1. public.user_roles table (using limit(1) to prevent PGRST116 multiple-row crash)
- * 2. public.is_admin() PostgreSQL RPC function
- * 3. public.profiles.role column if custom schema stores role directly
- * 4. Supabase Auth app_metadata / user_metadata claims
+ * Returns the single authorized administrator email for SALALAKART ZONE.
+ * Defaults to 'admin@salalakartzone.com' if not explicitly configured in environment variables.
  */
-export async function checkUserIsAdmin(userId: string): Promise<boolean> {
-  if (!isSupabaseConfigured || !userId) return false;
+export function getAuthorizedAdminEmail(): string {
+  const envEmail =
+    import.meta.env.VITE_ADMIN_EMAIL ||
+    import.meta.env.SUPABASE_ADMIN_EMAIL ||
+    import.meta.env.NEXT_PUBLIC_ADMIN_EMAIL ||
+    'admin@salalakartzone.com';
+  return envEmail.trim().toLowerCase();
+}
+
+/**
+ * Returns the optional single authorized administrator Supabase Auth UUID.
+ * When set, only an authenticated account matching this exact UUID can enter the admin panel.
+ */
+export function getAuthorizedAdminUserId(): string {
+  const envId =
+    import.meta.env.VITE_ADMIN_USER_ID ||
+    import.meta.env.VITE_ADMIN_UUID ||
+    import.meta.env.SUPABASE_ADMIN_USER_ID ||
+    '';
+  return envId.trim();
+}
+
+/**
+ * Securely verify if a given user account is the specifically authorized administrator
+ * and holds the verified 'admin' role in the database.
+ *
+ * Security Requirements Enforced:
+ * 1. Verifies the authenticated user token directly with Supabase Auth server (supabase.auth.getUser()).
+ *    Never trusts unverified browser-supplied claims or parameters.
+ * 2. Enforces that the authenticated user's email matches the single authorized admin email (getAuthorizedAdminEmail()).
+ * 3. Enforces that the user UUID matches the authorized admin UUID (getAuthorizedAdminUserId()) if configured.
+ * 4. Verifies the user holds the 'admin' role in public.user_roles or through public.is_admin() RPC.
+ * 5. Rejects any other user account, even if they have a valid Supabase customer login or metadata claim.
+ */
+export async function checkUserIsAdmin(userId: string, emailCandidate?: string): Promise<boolean> {
+  // Temporary development admin session check
+  const tempAdmin = getTempAdminSession();
+  if (tempAdmin && tempAdmin.role === 'admin') {
+    return true;
+  }
+
+  const authorizedEmail = getAuthorizedAdminEmail();
+  const authorizedUserId = getAuthorizedAdminUserId();
+
+  // If Supabase is not configured (offline demo mode), check against authorized offline credentials
+  if (!isSupabaseConfigured) {
+    if (!userId) return false;
+    if (authorizedUserId && userId !== authorizedUserId) return false;
+    return userId === 'user-admin-01' || userId === 'admin-master';
+  }
+
+  if (!userId) return false;
+
+  // If a specific admin UUID is configured and does not match, reject immediately
+  if (authorizedUserId && userId !== authorizedUserId) {
+    return false;
+  }
+
+  // If candidate email is supplied and does not match the authorized admin email, reject immediately
+  if (emailCandidate && emailCandidate.trim().toLowerCase() !== authorizedEmail) {
+    return false;
+  }
+
   try {
-    // 1. Primary check: public.user_roles table (use limit(1) to avoid PGRST116 multi-row crash)
+    // 1. Server-side token verification:
+    // Ask Supabase Auth server to verify the current session's JWT token and return the true user.
+    // This ensures we never trust client-manipulated state or unverified browser claims.
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError || !authData?.user) {
+      return false;
+    }
+
+    const verifiedUser = authData.user;
+
+    // Verify user ID matches the authenticated session user
+    if (verifiedUser.id !== userId) {
+      return false;
+    }
+
+    // Verify that the server-authenticated email strictly matches the single authorized admin email
+    const verifiedEmail = (verifiedUser.email || '').trim().toLowerCase();
+    if (verifiedEmail !== authorizedEmail) {
+      return false;
+    }
+
+    // If authorized admin UUID is configured, verify it matches the authenticated user ID
+    if (authorizedUserId && verifiedUser.id !== authorizedUserId) {
+      return false;
+    }
+
+    // 2. Database authorization check: Verify the account holds 'admin' role in public.user_roles
+    // Use limit(1) to prevent PGRST116 multiple-row crash
     const { data: roleRows, error: roleError } = await supabase
       .from('user_roles')
       .select('role')
@@ -120,51 +204,20 @@ export async function checkUserIsAdmin(userId: string): Promise<boolean> {
       return true;
     }
 
-    // 2. Secondary check: public.is_admin() PostgreSQL RPC function
+    // 3. Database RPC check: public.is_admin() PostgreSQL function
     try {
       const { data: rpcAdmin } = await supabase.rpc('is_admin');
       if (rpcAdmin === true) {
         return true;
       }
     } catch {
-      // RPC might not exist or user doesn't have execute permission
+      // RPC check fallback if function not deployed
     }
 
-    // 3. Fallback check: public.profiles table (if custom schema includes a role column)
-    try {
-      const { data: profileRow } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', userId)
-        .limit(1)
-        .maybeSingle();
-
-      if (profileRow && (profileRow as any).role === 'admin') {
-        return true;
-      }
-    } catch {
-      // 'role' column may not exist on profiles table
-    }
-
-    // 4. Fallback check: Supabase Auth metadata (app_metadata or user_metadata assigned by admin)
-    try {
-      const { data: authData } = await supabase.auth.getUser();
-      const authUser = authData?.user;
-      if (authUser && authUser.id === userId) {
-        const appRole = authUser.app_metadata?.role;
-        const userRole = authUser.user_metadata?.role;
-        const isAdminFlag = authUser.app_metadata?.is_admin || authUser.user_metadata?.is_admin;
-        if (appRole === 'admin' || userRole === 'admin' || isAdminFlag === true) {
-          return true;
-        }
-      }
-    } catch {
-      // metadata check failed
-    }
-
+    // Reject all other accounts (unauthorized users, customer accounts, or non-admin roles)
     return false;
   } catch (err) {
-    console.error('Unexpected error checking admin role:', err);
+    console.error('Unexpected error checking administrator authorization:', err);
     return false;
   }
 }

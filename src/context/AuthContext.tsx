@@ -1,8 +1,17 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import {
+  validateTempAdminCredentials,
+  getTempAdminSession,
+  setTempAdminSession,
+  clearTempAdminSession,
+  TEMP_ADMIN_CREDENTIALS,
+} from '../lib/tempAdminAuth';
+import {
   supabase,
   isSupabaseConfigured,
   checkUserIsAdmin,
+  getAuthorizedAdminEmail,
+  getAuthorizedAdminUserId,
   sendPasswordResetEmail as sendSupabasePasswordReset,
 } from '../lib/supabase';
 import {
@@ -67,6 +76,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     async function initAuth() {
       setIsLoading(true);
+
+      // 1. Check for temporary development admin session
+      const tempAdmin = getTempAdminSession();
+      if (tempAdmin && mounted) {
+        const adminProfile: UserProfile = {
+          id: tempAdmin.id,
+          email: tempAdmin.email,
+          full_name: tempAdmin.full_name,
+          phone: '+968 9123 4567',
+          role: 'admin',
+          created_at: tempAdmin.authenticatedAt,
+        };
+        setUser(adminProfile);
+        setIsLoading(false);
+        return;
+      }
 
       if (isFirebaseConfigured) {
         // Firebase Auth session listener handles initial and reactive state
@@ -141,10 +166,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const handleLocalSessionClear = () => {
+    clearTempAdminSession();
     localStorage.removeItem(LOCAL_AUTH_KEY);
     localStorage.removeItem('salalakart_active_cart');
     localStorage.removeItem('salalakart_active_wishlist');
     localStorage.removeItem('salalakart_admin_session');
+    localStorage.removeItem('salalakart_supabase_auth');
     try {
       sessionStorage.clear();
     } catch {
@@ -200,7 +227,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .maybeSingle();
 
       // Check admin status using the robust multi-layer checkUserIsAdmin helper
-      const isUserAdmin = await checkUserIsAdmin(userId);
+      const isUserAdmin = await checkUserIsAdmin(userId, email);
       const role: UserRole = isUserAdmin ? 'admin' : 'customer';
 
       const userProfile: UserProfile = {
@@ -306,129 +333,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   /**
-   * Dedicated Admin Login:
-   * Validates credentials and verifies 'admin' role in Firestore / PostgreSQL
+   * ==============================================================================
+   * TEMPORARY DEVELOPMENT-ONLY ADMIN AUTHENTICATION
+   * ==============================================================================
+   * Fixed credentials:
+   *   Admin email:    admin@salalakartzone.com
+   *   Admin password: admin@123
+   *
+   * For this testing stage, admin login is intentionally not connected to Supabase Auth.
+   * Allow login ONLY when both values match exactly.
+   * If either value is incorrect, deny access and display: "Invalid admin email or password."
+   * ==============================================================================
    */
   const adminLogin = async (
     email: string,
     password: string
   ): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
-    const cleanEmail = email.trim().toLowerCase();
 
-    if (!cleanEmail || !password) {
+    // Brief simulation to demonstrate validation & button disabled state
+    await new Promise((resolve) => setTimeout(resolve, 250));
+
+    const isValid = validateTempAdminCredentials(email, password);
+
+    if (!isValid) {
       setIsLoading(false);
-      return { success: false, error: 'Email and password are required.' };
-    }
-
-    // 1. Firebase Admin Login
-    if (isFirebaseConfigured) {
-      try {
-        const cred = await signInWithEmailAndPassword(firebaseAuth, cleanEmail, password);
-        const isAdminUser = await checkFirebaseUserIsAdmin(cred.user.uid);
-
-        if (!isAdminUser) {
-          await firebaseSignOut(firebaseAuth);
-          handleLocalSessionClear();
-          setUser(null);
-          setIsLoading(false);
-          return {
-            success: false,
-            error:
-              'Access Denied: This account is authenticated in Firebase but does NOT have administrator privileges in Firestore user_roles.',
-          };
-        }
-
-        await fetchFirebaseUserProfile(cred.user.uid, cred.user.email || cleanEmail);
-        setIsLoading(false);
-        return { success: true };
-      } catch (err: unknown) {
-        setIsLoading(false);
-        const msg = err instanceof Error ? err.message : 'Firebase admin authentication failed';
-        return { success: false, error: msg };
-      }
-    }
-
-    // 2. Supabase Admin Login
-    if (isSupabaseConfigured) {
-      try {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: cleanEmail,
-          password,
-        });
-
-        if (error) {
-          setIsLoading(false);
-          let userMsg = error.message;
-          const lower = (error.message || '').toLowerCase();
-          if (lower.includes('invalid login credentials') || lower.includes('invalid_grant')) {
-            userMsg = 'Invalid email or password. Please verify your credentials or click "Forgot Password?".';
-          } else if (lower.includes('email not confirmed')) {
-            userMsg = 'Email not confirmed in Supabase. Please check your inbox or confirm the user in your Supabase Auth dashboard.';
-          } else if (lower.includes('fetch') || lower.includes('network') || lower.includes('failed to fetch')) {
-            userMsg = 'Cannot reach Supabase project. Please check your VITE_SUPABASE_URL and internet connection.';
-          }
-          return { success: false, error: userMsg };
-        }
-
-        if (!data.user) {
-          setIsLoading(false);
-          return { success: false, error: 'Authentication failed. Please verify credentials.' };
-        }
-
-        const isAdminUser = await checkUserIsAdmin(data.user.id);
-
-        if (!isAdminUser) {
-          await supabase.auth.signOut();
-          handleLocalSessionClear();
-          setUser(null);
-          setIsLoading(false);
-          return {
-            success: false,
-            error:
-              `Access Denied: Account "${cleanEmail}" is authenticated in Supabase, but lacks the "admin" role in the database. Please run setup_first_admin.sql in your Supabase SQL Editor.`,
-          };
-        }
-
-        await fetchSupabaseUserProfile(data.user.id, data.user.email || cleanEmail);
-        setIsLoading(false);
-        return { success: true };
-      } catch (err: unknown) {
-        setIsLoading(false);
-        const msg = err instanceof Error ? err.message : 'Admin authentication failed';
-        return { success: false, error: msg };
-      }
-    }
-
-    // 3. Offline / Demo Admin Login
-    const configuredAdminEmail = (import.meta.env.VITE_ADMIN_EMAIL || 'admin@salalakartzone.com').trim().toLowerCase();
-    const configuredAdminPassword = import.meta.env.VITE_ADMIN_PASSWORD || 'admin123';
-
-    if (cleanEmail === configuredAdminEmail) {
-      if (password !== configuredAdminPassword) {
-        setIsLoading(false);
-        return { success: false, error: `Invalid password for administrator account "${cleanEmail}".` };
-      }
-      const adminProfile: UserProfile = {
-        id: 'user-admin-01',
-        email: configuredAdminEmail,
-        full_name: 'Store Administrator',
-        phone: '+968 9123 4567',
-        role: 'admin',
-        created_at: new Date().toISOString(),
+      return {
+        success: false,
+        error: 'Invalid admin email or password.',
       };
-      setUser(adminProfile);
-      localStorage.setItem(LOCAL_AUTH_KEY, JSON.stringify(adminProfile));
-      setIsLoading(false);
-      return { success: true };
     }
 
-    setIsLoading(false);
-    return {
-      success: false,
-      error:
-        'Access Denied: Account not recognized as an administrator. Connect Supabase in .env or use demo credentials.',
+    const session = setTempAdminSession();
+    const adminProfile: UserProfile = {
+      id: session.id,
+      email: session.email,
+      full_name: session.full_name,
+      phone: '+968 9123 4567',
+      role: 'admin',
+      created_at: session.authenticatedAt,
     };
+
+    setUser(adminProfile);
+    localStorage.setItem(LOCAL_AUTH_KEY, JSON.stringify(adminProfile));
+    setIsLoading(false);
+    return { success: true };
   };
 
   /**
@@ -562,8 +511,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   ): Promise<{ success: boolean; error?: string }> => {
     if (!user) return { success: false, error: 'Not authenticated' };
 
-    const { role: ignoredRole, ...safeUpdates } = updates;
-    const updated = { ...user, ...safeUpdates };
+    // Strict security: Never permit users to modify their role, email, or user id
+    const { role: ignoredRole, id: ignoredId, email: ignoredEmail, ...safeUpdates } = updates;
+    const updated = { ...user, ...safeUpdates, role: user.role, email: user.email, id: user.id };
     setUser(updated);
     localStorage.setItem(LOCAL_AUTH_KEY, JSON.stringify(updated));
 

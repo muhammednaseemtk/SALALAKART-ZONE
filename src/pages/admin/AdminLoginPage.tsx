@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { getAuthorizedAdminEmail } from '../../lib/supabase';
 import { BrandLogo } from '../../components/common/BrandLogo';
 import {
   Lock,
@@ -64,12 +65,9 @@ export const AdminLoginPage: React.FC = () => {
     e.preventDefault();
     setError(null);
 
-    if (!email.trim()) {
-      setError('Please enter your admin email address.');
-      return;
-    }
-    if (!password) {
-      setError('Please enter your admin password.');
+    if (!email.trim() || !password) {
+      setError('Invalid admin email or password.');
+      setPassword('');
       return;
     }
 
@@ -82,7 +80,7 @@ export const AdminLoginPage: React.FC = () => {
       setPassword('');
       navigate(from, { replace: true });
     } else {
-      setError(res.error || 'Invalid administrator credentials or insufficient privileges.');
+      setError(res.error || 'Invalid admin email or password.');
       // Clear entered password on authentication failure for security
       setPassword('');
     }
@@ -133,35 +131,21 @@ export const AdminLoginPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Backend Connection Status Badge */}
+        {/* Temporary Admin Authentication Status Badge */}
         <div className="p-3 rounded-2xl bg-slate-800/80 border border-slate-700/60 text-xs space-y-1.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Database className="w-4 h-4 text-purple-400" />
-              <span className="text-[11px] font-medium text-slate-300">Backend Status:</span>
+              <span className="text-[11px] font-medium text-slate-300">Admin Mode:</span>
             </div>
-            {backendType === 'supabase' ? (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                Supabase Connected
-              </span>
-            ) : backendType === 'firebase' ? (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-bold">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                Firebase Connected
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] font-bold">
-                <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
-                Offline Evaluation Mode
-              </span>
-            )}
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-bold">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+              Temporary Hardcoded Dev Login
+            </span>
           </div>
-          {backendType === 'local' && (
-            <p className="text-[10px] text-slate-400 leading-relaxed">
-              To connect your live Supabase database, create a <code className="text-purple-300">.env</code> file with <code className="text-purple-300">VITE_SUPABASE_URL</code> and <code className="text-purple-300">VITE_SUPABASE_ANON_KEY</code>.
-            </p>
-          )}
+          <p className="text-[10px] text-slate-400 leading-relaxed">
+            Temporary development testing credentials enabled for <code className="text-purple-300">admin@salalakartzone.com</code>.
+          </p>
         </div>
 
         {/* Warning if logged in as normal customer */}
@@ -207,7 +191,7 @@ export const AdminLoginPage: React.FC = () => {
                 autoComplete="off"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@salalakartzone.com"
+                placeholder={getAuthorizedAdminEmail()}
                 className="w-full text-xs p-3 pl-10 rounded-xl bg-slate-950/80 border border-slate-700/80 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-white placeholder-slate-500 outline-none transition-all"
               />
               <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -264,7 +248,7 @@ export const AdminLoginPage: React.FC = () => {
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Verifying Administrator Authorization...</span>
+                <span>Validating Admin Credentials...</span>
               </>
             ) : (
               <>
@@ -335,7 +319,7 @@ export const AdminLoginPage: React.FC = () => {
                       required
                       value={resetEmail}
                       onChange={(e) => setResetEmail(e.target.value)}
-                      placeholder="admin@salalakartzone.com"
+                      placeholder={getAuthorizedAdminEmail()}
                       className="w-full text-xs p-3 pl-10 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 focus:border-purple-500 outline-none"
                     />
                     <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />

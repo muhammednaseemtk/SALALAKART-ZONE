@@ -10,16 +10,33 @@ export const AdminLayout: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Protect against Back-Forward cache (bfcache) restoration after logout
+  // Protect against Back-Forward cache (bfcache) restoration or back-button traversal after logout
   useEffect(() => {
     const handlePageShow = (e: PageTransitionEvent) => {
-      if (e.persisted && (!isAuthenticated || !isAdmin)) {
+      const navEntry = window.performance?.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+      if ((e.persisted || navEntry?.type === 'back_forward') && (!isAuthenticated || !isAdmin)) {
+        navigate('/admin/login', { replace: true });
+      }
+    };
+    const handlePopState = () => {
+      if (!isAuthenticated || !isAdmin) {
         navigate('/admin/login', { replace: true });
       }
     };
     window.addEventListener('pageshow', handlePageShow);
-    return () => window.removeEventListener('pageshow', handlePageShow);
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('pageshow', handlePageShow);
+      window.removeEventListener('popstate', handlePopState);
+    };
   }, [isAuthenticated, isAdmin, navigate]);
+
+  // Reactive redirect guard whenever auth state changes to unauthenticated or non-admin
+  useEffect(() => {
+    if (!isLoading && (!isAuthenticated || !isAdmin)) {
+      navigate('/admin/login', { replace: true, state: { from: location } });
+    }
+  }, [isLoading, isAuthenticated, isAdmin, navigate, location]);
 
   if (isLoading) {
     return (
