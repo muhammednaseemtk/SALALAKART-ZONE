@@ -23,6 +23,7 @@ import {
   StoreSettings,
   UserProfile,
 } from '../types';
+import { formatPrice } from '../utils/currency';
 
 // Storage keys for persistent local storage layer (used as offline / pre-configuration fallback)
 const STORAGE_KEYS = {
@@ -741,7 +742,7 @@ export const api = {
       return {
         valid: false,
         discount: 0,
-        error: `Minimum order amount of $${coupon.min_order_amount} required to use this coupon.`,
+        error: `Minimum order amount of ${formatPrice(coupon.min_order_amount)} required to use this coupon.`,
       };
     }
     if (coupon.times_used >= coupon.usage_limit) {
@@ -1005,6 +1006,16 @@ export const api = {
             order_id: createdOrder.id,
             status: createdOrder.order_status,
             notes: 'Order placed by customer',
+          });
+
+          // Insert payment record into payments ledger in INR
+          await supabase.from('payments').insert({
+            order_id: createdOrder.id,
+            provider: orderInput.payment_method.toUpperCase(),
+            transaction_id: `TXN-${createdOrder.order_number}`,
+            amount: createdOrder.total_amount,
+            currency: 'INR',
+            status: createdOrder.payment_status || 'pending',
           });
 
           const fullOrder = await this.getOrderById(createdOrder.id);
@@ -1335,7 +1346,7 @@ export const api = {
       provider: o.payment_method.toUpperCase(),
       transaction_id: `TXN-${o.order_number}`,
       amount: o.total_amount,
-      currency: 'USD',
+      currency: 'INR',
       status: o.payment_status,
       created_at: o.created_at,
     }));
@@ -1451,7 +1462,7 @@ export const api = {
       const dayOrders = orders.filter((o) => o.created_at.slice(0, 10) === dateStr);
       const daySales = dayOrders.reduce((acc, o) => acc + o.total_amount, 0);
       last7Days.push({
-        date: d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+        date: d.toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' }),
         sales: Math.round(daySales * 100) / 100,
         ordersCount: dayOrders.length,
       });

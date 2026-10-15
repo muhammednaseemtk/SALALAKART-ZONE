@@ -159,17 +159,32 @@ export const AdminProductFormPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const numPrice = Number(formData.price);
+    const numSalePrice = formData.sale_price !== '' && formData.sale_price !== null && formData.sale_price !== undefined ? Number(formData.sale_price) : null;
+    const numCostPrice = Number(formData.cost_price || 0);
+
+    if (numPrice < 0 || (numSalePrice !== null && numSalePrice < 0) || numCostPrice < 0) {
+      alert('Prices cannot be negative. Please enter a valid amount.');
+      return;
+    }
+
+    if (numSalePrice !== null && numSalePrice > numPrice) {
+      alert('Sale price cannot exceed regular price.');
+      return;
+    }
+
     setLoading(true);
 
     const selectedCat = categories.find((c) => c.id === formData.category_id);
 
     const payload = {
       ...formData,
-      sale_price: formData.sale_price !== '' ? Number(formData.sale_price) : null,
-      price: Number(formData.price),
-      cost_price: Number(formData.cost_price),
-      stock_quantity: Number(formData.stock_quantity),
-      low_stock_threshold: Number(formData.low_stock_threshold),
+      sale_price: numSalePrice,
+      price: numPrice,
+      cost_price: numCostPrice,
+      stock_quantity: Math.max(0, Number(formData.stock_quantity)),
+      low_stock_threshold: Math.max(0, Number(formData.low_stock_threshold)),
       category_name: selectedCat?.name || 'Toys',
       category_slug: selectedCat?.slug || 'toys',
       images,
@@ -349,41 +364,61 @@ export const AdminProductFormPage: React.FC = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">Regular Price ($) *</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                required
-                value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
-                className="w-full text-xs p-3 rounded-xl border border-slate-200 focus:outline-pink-500 bg-slate-50/50 font-bold"
-              />
+              <label className="text-xs font-bold text-slate-700 block mb-1">Regular Price (₹) *</label>
+              <div className="relative rounded-xl overflow-hidden">
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500 font-bold text-xs">
+                  ₹
+                </span>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  required
+                  value={formData.price}
+                  onChange={(e) => setFormData({ ...formData, price: Math.max(0, Number(e.target.value)) })}
+                  className="w-full text-xs p-3 pl-7 rounded-xl border border-slate-200 focus:outline-pink-500 bg-slate-50/50 font-bold"
+                  placeholder="0.00"
+                />
+              </div>
             </div>
 
             <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">Sale Price ($) (Optional)</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.sale_price}
-                onChange={(e) => setFormData({ ...formData, sale_price: e.target.value })}
-                className="w-full text-xs p-3 rounded-xl border border-slate-200 focus:outline-pink-500 bg-slate-50/50 font-bold text-pink-600"
-                placeholder="Discounted price"
-              />
+              <label className="text-xs font-bold text-slate-700 block mb-1">Sale Price (₹) (Optional)</label>
+              <div className="relative rounded-xl overflow-hidden">
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-pink-500 font-bold text-xs">
+                  ₹
+                </span>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formData.sale_price}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setFormData({ ...formData, sale_price: val === '' ? '' : Math.max(0, Number(val)) });
+                  }}
+                  className="w-full text-xs p-3 pl-7 rounded-xl border border-slate-200 focus:outline-pink-500 bg-slate-50/50 font-bold text-pink-600"
+                  placeholder="Discounted price"
+                />
+              </div>
             </div>
 
             <div>
-              <label className="text-xs font-bold text-purple-700 block mb-1">Purchase Cost ($) (Admin Only)</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.cost_price}
-                onChange={(e) => setFormData({ ...formData, cost_price: Number(e.target.value) })}
-                className="w-full text-xs p-3 rounded-xl border border-purple-200 focus:outline-purple-500 bg-purple-50/30 font-bold"
-              />
+              <label className="text-xs font-bold text-purple-700 block mb-1">Purchase Cost (₹) (Admin Only)</label>
+              <div className="relative rounded-xl overflow-hidden">
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-purple-500 font-bold text-xs">
+                  ₹
+                </span>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formData.cost_price}
+                  onChange={(e) => setFormData({ ...formData, cost_price: Math.max(0, Number(e.target.value)) })}
+                  className="w-full text-xs p-3 pl-7 rounded-xl border border-purple-200 focus:outline-purple-500 bg-purple-50/30 font-bold"
+                  placeholder="0.00"
+                />
+              </div>
             </div>
 
             <div>

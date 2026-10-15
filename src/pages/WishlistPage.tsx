@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useWishlist } from '../context/WishlistContext';
 import { useCart } from '../context/CartContext';
 import { Heart, ShoppingCart, Trash2, ArrowRight } from 'lucide-react';
+import { formatPrice } from '../utils/currency';
 
 export const WishlistPage: React.FC = () => {
   const { items, removeFromWishlist, clearWishlist } = useWishlist();
@@ -91,11 +92,11 @@ export const WishlistPage: React.FC = () => {
 
                 <div className="mt-2 flex items-baseline gap-2">
                   <span className="font-extrabold text-base text-slate-900">
-                    ${currentPrice.toFixed(2)}
+                    {formatPrice(currentPrice)}
                   </span>
                   {prod.sale_price && (
                     <span className="text-xs text-slate-400 line-through">
-                      ${prod.price.toFixed(2)}
+                      {formatPrice(prod.price)}
                     </span>
                   )}
                 </div>

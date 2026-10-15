@@ -140,7 +140,7 @@ export const HomePage: React.FC = () => {
             </h2>
             <p className="text-sm text-pink-100 leading-relaxed">
               From birthdays to surprise celebrations, bring home smiles with premium gifts,
-              watches and interactive toys. Free doorstep shipping on orders above $75!
+              watches and interactive toys. Free doorstep shipping on orders above ₹75!
             </p>
             <div className="pt-2">
               <Link

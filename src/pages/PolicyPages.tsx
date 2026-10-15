@@ -26,7 +26,7 @@ export const PolicyPages: React.FC = () => {
         </p>
         <h3 className="font-bold text-base text-slate-900 pt-2">2. Pricing and Availability</h3>
         <p>
-          All prices are quoted in USD (or local Omani Rial equivalents where selected). We reserve the right to correct any typographical pricing errors.
+          All prices are quoted in Indian Rupees (INR / ₹). We reserve the right to correct any typographical pricing errors.
           Stock levels are validated at the moment of checkout. In the rare event an item oversells, you will be notified and promptly refunded.
         </p>
         <h3 className="font-bold text-base text-slate-900 pt-2">3. Orders and Payment</h3>
@@ -51,9 +51,9 @@ export const PolicyPages: React.FC = () => {
         </p>
         <h3 className="font-bold text-base text-slate-900 pt-2">2. Delivery Zones and Rates</h3>
         <ul className="list-disc pl-5 space-y-1 text-xs">
-          <li><strong>Standard Delivery (3-5 Days):</strong> $4.99 (or FREE on orders above $75.00).</li>
-          <li><strong>Express Priority Air (1-2 Days):</strong> $9.99 for urgent gifting needs.</li>
-          <li><strong>Same-Day Courier (Salalah Zone):</strong> $14.99 for local delivery within 6 hours.</li>
+          <li><strong>Standard Delivery (3-5 Days):</strong> ₹4.99 (or FREE on orders above ₹75.00).</li>
+          <li><strong>Express Priority Air (1-2 Days):</strong> ₹9.99 for urgent gifting needs.</li>
+          <li><strong>Same-Day Courier (Salalah Zone):</strong> ₹14.99 for local delivery within 6 hours.</li>
         </ul>
         <h3 className="font-bold text-base text-slate-900 pt-2">3. Tracking Your Parcel</h3>
         <p>

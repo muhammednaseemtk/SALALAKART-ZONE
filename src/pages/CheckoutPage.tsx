@@ -17,6 +17,7 @@ import {
   AlertCircle,
   ArrowRight,
 } from 'lucide-react';
+import { formatPrice, toPaise } from '../utils/currency';
 
 export const CheckoutPage: React.FC = () => {
   const {
@@ -325,9 +326,9 @@ export const CheckoutPage: React.FC = () => {
 
                     <div className="text-right">
                       {isFree ? (
-                        <span className="font-bold text-xs text-emerald-600">FREE ($75+ Order)</span>
+                        <span className="font-bold text-xs text-emerald-600">FREE (₹75+ Order)</span>
                       ) : (
-                        <span className="font-extrabold text-xs text-slate-900">${method.price.toFixed(2)}</span>
+                        <span className="font-extrabold text-xs text-slate-900">{formatPrice(method.price)}</span>
                       )}
                     </div>
                   </label>
@@ -409,7 +410,7 @@ export const CheckoutPage: React.FC = () => {
                   <CreditCard className="w-5 h-5 text-cyan-600" />
                   <div>
                     <p className="font-bold text-xs text-slate-900">Credit / Debit Card</p>
-                    <p className="text-[11px] text-slate-500">Visa, Mastercard, OmanNet supported</p>
+                    <p className="text-[11px] text-slate-500">Visa, Mastercard, RuPay & NetBanking supported</p>
                   </div>
                 </div>
                 <div
@@ -447,7 +448,7 @@ export const CheckoutPage: React.FC = () => {
                     </div>
                   </div>
                   <span className="font-bold text-slate-900 shrink-0">
-                    ${(item.unit_price * item.quantity).toFixed(2)}
+                    {formatPrice(item.unit_price * item.quantity)}
                   </span>
                 </div>
               ))}
@@ -457,12 +458,12 @@ export const CheckoutPage: React.FC = () => {
             <div className="space-y-2 pt-3 text-xs text-slate-600 border-t border-slate-100">
               <div className="flex justify-between">
                 <span>Subtotal</span>
-                <span className="font-semibold text-slate-900">${subtotal.toFixed(2)}</span>
+                <span className="font-semibold text-slate-900">{formatPrice(subtotal)}</span>
               </div>
               {discountAmount > 0 && (
                 <div className="flex justify-between text-emerald-600 font-bold">
                   <span>Coupon Discount ({appliedCoupon?.code})</span>
-                  <span>-${discountAmount.toFixed(2)}</span>
+                  <span>-{formatPrice(discountAmount)}</span>
                 </div>
               )}
               <div className="flex justify-between">
@@ -471,17 +472,17 @@ export const CheckoutPage: React.FC = () => {
                   {subtotal >= 75 ? (
                     <strong className="text-emerald-600">FREE</strong>
                   ) : (
-                    `$${selectedShippingMethod?.price.toFixed(2) || '4.99'}`
+                    formatPrice(selectedShippingMethod?.price || 4.99)
                   )}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span>Estimated Taxes (5%)</span>
-                <span>${taxAmount.toFixed(2)}</span>
+                <span>{formatPrice(taxAmount)}</span>
               </div>
               <div className="flex justify-between text-base font-black text-slate-900 pt-3 border-t border-slate-100">
                 <span>Total Amount Due</span>
-                <span className="text-pink-600 text-xl">${totalAmount.toFixed(2)}</span>
+                <span className="text-pink-600 text-xl">{formatPrice(totalAmount)}</span>
               </div>
             </div>
 
@@ -494,7 +495,7 @@ export const CheckoutPage: React.FC = () => {
                 <span>Confirming Order...</span>
               ) : (
                 <>
-                  <span>Place Order (${totalAmount.toFixed(2)})</span>
+                  <span>Place Order ({formatPrice(totalAmount)})</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}

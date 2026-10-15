@@ -13,6 +13,7 @@ import {
   Calendar,
   Save,
 } from 'lucide-react';
+import { formatPrice } from '../../utils/currency';
 
 export const AdminOrderDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -277,8 +278,8 @@ export const AdminOrderDetailPage: React.FC = () => {
                     </div>
                   </td>
                   <td className="py-3 px-2 text-center font-bold text-slate-800">{item.quantity}</td>
-                  <td className="py-3 px-2 text-right text-slate-700">${item.price.toFixed(2)}</td>
-                  <td className="py-3 px-2 text-right font-extrabold text-slate-900">${item.total_price.toFixed(2)}</td>
+                  <td className="py-3 px-2 text-right text-slate-700">{formatPrice(item.price)}</td>
+                  <td className="py-3 px-2 text-right font-extrabold text-slate-900">{formatPrice(item.total_price)}</td>
                 </tr>
               ))}
             </tbody>
@@ -290,25 +291,25 @@ export const AdminOrderDetailPage: React.FC = () => {
           <div className="w-72 space-y-2 text-xs">
             <div className="flex justify-between text-slate-600">
               <span>Items Subtotal</span>
-              <span className="font-semibold text-slate-900">${order.subtotal.toFixed(2)}</span>
+              <span className="font-semibold text-slate-900">{formatPrice(order.subtotal)}</span>
             </div>
             {order.discount_amount > 0 && (
               <div className="flex justify-between text-emerald-600 font-bold">
                 <span>Discount Applied ({order.coupon_code})</span>
-                <span>-${order.discount_amount.toFixed(2)}</span>
+                <span>-{formatPrice(order.discount_amount)}</span>
               </div>
             )}
             <div className="flex justify-between text-slate-600">
               <span>Shipping Fee</span>
-              <span>${order.shipping_fee.toFixed(2)}</span>
+              <span>{formatPrice(order.shipping_fee)}</span>
             </div>
             <div className="flex justify-between text-slate-600">
               <span>Tax (5%)</span>
-              <span>${order.tax_amount.toFixed(2)}</span>
+              <span>{formatPrice(order.tax_amount)}</span>
             </div>
             <div className="flex justify-between text-base font-black text-slate-900 pt-2 border-t border-slate-200">
               <span>Total Payable</span>
-              <span className="text-pink-600 text-lg">${order.total_amount.toFixed(2)}</span>
+              <span className="text-pink-600 text-lg">{formatPrice(order.total_amount)}</span>
             </div>
           </div>
         </div>

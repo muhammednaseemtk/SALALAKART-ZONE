@@ -29,7 +29,7 @@ export const AnnouncementBar: React.FC = () => {
           <Sparkles className="w-3.5 h-3.5 text-yellow-300 animate-pulse shrink-0" />
           <span className="truncate max-w-[290px] sm:max-w-none">
             {settings?.announcement_bar_text ||
-              '🎉 Welcome to SALALAKART ZONE! Use code WELCOME10 for 10% OFF • Free shipping on orders over $75!'}
+              '🎉 Welcome to SALALAKART ZONE! Use code WELCOME10 for 10% OFF • Free shipping on orders over ₹75!'}
           </span>
         </div>
 

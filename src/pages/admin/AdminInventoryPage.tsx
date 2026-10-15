@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
 import { Product, InventoryMovement } from '../../types';
-import { Boxes, Plus, AlertTriangle, ArrowUpDown, History, Save, CheckCircle2 } from 'lucide-react';
+import { Boxes, Plus, AlertTriangle, ArrowUpDown, History, Save, CheckCircle2, IndianRupee } from 'lucide-react';
+import { formatPrice } from '../../utils/currency';
 
 export const AdminInventoryPage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -56,6 +57,9 @@ export const AdminInventoryPage: React.FC = () => {
   };
 
   const lowStockProducts = products.filter((p) => p.stock_quantity <= p.low_stock_threshold);
+  const totalValuation = products.reduce((acc, p) => acc + (p.cost_price || p.price) * p.stock_quantity, 0);
+  const totalRetailValuation = products.reduce((acc, p) => acc + (p.sale_price || p.price) * p.stock_quantity, 0);
+  const totalUnits = products.reduce((acc, p) => acc + p.stock_quantity, 0);
 
   return (
     <div className="space-y-8">
@@ -81,6 +85,30 @@ export const AdminInventoryPage: React.FC = () => {
         </div>
       )}
 
+      {/* Inventory Valuation KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs space-y-2">
+          <span className="text-xs font-bold text-slate-500 uppercase">Total Inventory Valuation (Cost)</span>
+          <h3 className="font-black text-2xl text-slate-900">{formatPrice(totalValuation)}</h3>
+          <p className="text-[10px] text-slate-400">Calculated across {totalUnits} warehouse units</p>
+        </div>
+
+        <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs space-y-2">
+          <span className="text-xs font-bold text-slate-500 uppercase">Estimated Retail Value</span>
+          <h3 className="font-black text-2xl text-emerald-600">{formatPrice(totalRetailValuation)}</h3>
+          <p className="text-[10px] text-slate-400">Total catalog market selling price</p>
+        </div>
+
+        <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs space-y-2">
+          <span className="text-xs font-bold text-slate-500 uppercase">Stock Health Status</span>
+          <h3 className="font-black text-2xl text-slate-800 flex items-center gap-1.5">
+            <Boxes className="w-6 h-6 text-purple-600" />
+            <span>{totalUnits} Units</span>
+          </h3>
+          <p className="text-[10px] text-slate-400">{lowStockProducts.length} low stock warnings</p>
+        </div>
+      </div>
+
       {/* Low Stock Warning Banner */}
       {lowStockProducts.length > 0 && (
         <div className="p-4 rounded-2xl bg-orange-50 border border-orange-200 text-orange-900 flex items-center justify-between gap-4">
@@ -105,7 +133,9 @@ export const AdminInventoryPage: React.FC = () => {
                 <th className="py-3 px-3">Product Name</th>
                 <th className="py-3 px-3">SKU</th>
                 <th className="py-3 px-3">Category</th>
+                <th className="py-3 px-3">Cost / Unit</th>
                 <th className="py-3 px-3">In Stock</th>
+                <th className="py-3 px-3">Valuation</th>
                 <th className="py-3 px-3">Threshold</th>
                 <th className="py-3 px-3 text-right">Quick Action</th>
               </tr>
@@ -126,6 +156,7 @@ export const AdminInventoryPage: React.FC = () => {
                   </td>
                   <td className="py-3 px-3 font-mono text-slate-600">{p.sku}</td>
                   <td className="py-3 px-3 text-slate-600">{p.category_name}</td>
+                  <td className="py-3 px-3 font-mono text-slate-700">{formatPrice(p.cost_price || p.price)}</td>
                   <td className="py-3 px-3">
                     <span
                       className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold ${
@@ -138,6 +169,9 @@ export const AdminInventoryPage: React.FC = () => {
                     >
                       {p.stock_quantity} units
                     </span>
+                  </td>
+                  <td className="py-3 px-3 font-bold text-slate-900">
+                    {formatPrice((p.cost_price || p.price) * p.stock_quantity)}
                   </td>
                   <td className="py-3 px-3 text-slate-500">{p.low_stock_threshold} units</td>
                   <td className="py-3 px-3 text-right">

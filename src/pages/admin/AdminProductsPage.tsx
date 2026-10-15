@@ -14,6 +14,7 @@ import {
   Eye,
   AlertCircle,
 } from 'lucide-react';
+import { formatPrice } from '../../utils/currency';
 
 export const AdminProductsPage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -213,16 +214,16 @@ export const AdminProductsPage: React.FC = () => {
                     </td>
                     <td className="py-3 px-4">
                       <span className="font-bold text-slate-900">
-                        ${(prod.sale_price || prod.price).toFixed(2)}
+                        {formatPrice(prod.sale_price || prod.price)}
                       </span>
                       {prod.sale_price && (
                         <span className="text-[10px] text-slate-400 line-through block">
-                          ${prod.price.toFixed(2)}
+                          {formatPrice(prod.price)}
                         </span>
                       )}
                     </td>
                     <td className="py-3 px-4 text-slate-500 font-mono">
-                      ${prod.cost_price.toFixed(2)}
+                      {formatPrice(prod.cost_price)}
                     </td>
                     <td className="py-3 px-4">
                       <span

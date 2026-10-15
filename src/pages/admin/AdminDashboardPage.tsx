@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../../services/api';
 import { Order, Product } from '../../types';
 import {
-  DollarSign,
+  IndianRupee,
   ShoppingBag,
   Package,
   Users,
@@ -16,6 +16,7 @@ import {
   Boxes,
   Sparkles,
 } from 'lucide-react';
+import { formatPrice } from '../../utils/currency';
 
 export const AdminDashboardPage: React.FC = () => {
   const [stats, setStats] = useState<any>(null);
@@ -108,14 +109,14 @@ export const AdminDashboardPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-500 uppercase">Total Sales Revenue</span>
             <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-              <DollarSign className="w-5 h-5" />
+              <IndianRupee className="w-5 h-5" />
             </div>
           </div>
           <div>
-            <h3 className="font-extrabold text-2xl text-slate-900">${stats.totalSales.toFixed(2)}</h3>
+            <h3 className="font-extrabold text-2xl text-slate-900">{formatPrice(stats.totalSales)}</h3>
             <p className="text-[11px] text-emerald-600 font-bold flex items-center gap-1 mt-1">
               <TrendingUp className="w-3.5 h-3.5" />
-              <span>Today's Sales: ${stats.todaysSales.toFixed(2)}</span>
+              <span>Today's Sales: {formatPrice(stats.todaysSales)}</span>
             </p>
           </div>
         </div>
@@ -181,7 +182,7 @@ export const AdminDashboardPage: React.FC = () => {
               <p className="text-[11px] text-slate-400">Daily revenue breakdown</p>
             </div>
             <span className="text-xs font-bold text-purple-600 bg-purple-50 px-3 py-1 rounded-full">
-              Gross: ${stats.grossSales.toFixed(2)}
+              Gross: {formatPrice(stats.grossSales)}
             </span>
           </div>
 
@@ -193,7 +194,7 @@ export const AdminDashboardPage: React.FC = () => {
               return (
                 <div key={idx} className="flex-1 flex flex-col items-center gap-2 group">
                   <span className="text-[10px] font-bold text-slate-700 opacity-0 group-hover:opacity-100 transition-opacity">
-                    ${d.sales}
+                    {formatPrice(d.sales)}
                   </span>
                   <div className="w-full bg-slate-100 rounded-t-xl overflow-hidden h-36 flex items-end">
                     <div
@@ -288,7 +289,7 @@ export const AdminDashboardPage: React.FC = () => {
                     {new Date(ord.created_at).toLocaleDateString()}
                   </td>
                   <td className="py-3.5 px-2 font-bold text-slate-900">
-                    ${ord.total_amount.toFixed(2)}
+                    {formatPrice(ord.total_amount)}
                   </td>
                   <td className="py-3.5 px-2">
                     <span className="uppercase font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded text-[10px]">

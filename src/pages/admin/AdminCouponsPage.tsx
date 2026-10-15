@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
 import { Coupon } from '../../types';
 import { Ticket, Plus, Trash2, Edit, CheckCircle, AlertCircle, X, Sparkles } from 'lucide-react';
+import { formatPrice } from '../../utils/currency';
 
 export const AdminCouponsPage: React.FC = () => {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
@@ -138,11 +139,11 @@ export const AdminCouponsPage: React.FC = () => {
                     <td className="py-3.5 px-4 font-bold text-slate-900">
                       {c.discount_type === 'percentage'
                         ? `${c.discount_value}% OFF`
-                        : `$${c.discount_value.toFixed(2)} OFF`}
+                        : `${formatPrice(c.discount_value)} OFF`}
                     </td>
-                    <td className="py-3.5 px-4 text-slate-600">${c.min_order_amount.toFixed(2)}</td>
+                    <td className="py-3.5 px-4 text-slate-600">{formatPrice(c.min_order_amount)}</td>
                     <td className="py-3.5 px-4 text-slate-500">
-                      {c.max_discount_amount ? `$${c.max_discount_amount.toFixed(2)}` : 'No Cap'}
+                      {c.max_discount_amount ? formatPrice(c.max_discount_amount) : 'No Cap'}
                     </td>
                     <td className="py-3.5 px-4 font-semibold text-slate-700">
                       {c.times_used} / {c.usage_limit}
@@ -217,17 +218,20 @@ export const AdminCouponsPage: React.FC = () => {
                       className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 font-bold"
                     >
                       <option value="percentage">Percentage (%)</option>
-                      <option value="fixed">Fixed Amount ($)</option>
+                      <option value="fixed">Fixed Amount (₹)</option>
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-slate-700 block mb-1">Discount Value *</label>
+                    <label className="text-xs font-bold text-slate-700 block mb-1">
+                      Discount Value {discountType === 'percentage' ? '(%)' : '(₹)'} *
+                    </label>
                     <input
                       type="number"
                       step="0.01"
+                      min="0"
                       required
                       value={discountValue}
-                      onChange={(e) => setDiscountValue(Number(e.target.value))}
+                      onChange={(e) => setDiscountValue(Math.max(0, Number(e.target.value)))}
                       className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 font-bold"
                     />
                   </div>
@@ -235,22 +239,24 @@ export const AdminCouponsPage: React.FC = () => {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-bold text-slate-700 block mb-1">Min Order Amount ($)</label>
+                    <label className="text-xs font-bold text-slate-700 block mb-1">Min Order Amount (₹)</label>
                     <input
                       type="number"
                       step="0.01"
+                      min="0"
                       value={minOrderAmount}
-                      onChange={(e) => setMinOrderAmount(Number(e.target.value))}
+                      onChange={(e) => setMinOrderAmount(Math.max(0, Number(e.target.value)))}
                       className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 font-bold"
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-slate-700 block mb-1">Max Discount Cap ($)</label>
+                    <label className="text-xs font-bold text-slate-700 block mb-1">Max Discount Cap (₹)</label>
                     <input
                       type="number"
                       step="0.01"
+                      min="0"
                       value={maxDiscountAmount}
-                      onChange={(e) => setMaxDiscountAmount(e.target.value)}
+                      onChange={(e) => setMaxDiscountAmount(e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))}
                       className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 font-bold"
                       placeholder="Optional"
                     />

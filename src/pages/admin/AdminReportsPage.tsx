@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
 import { Order, Product } from '../../types';
-import { BarChart3, Download, Calendar, DollarSign, ArrowUpRight, TrendingUp } from 'lucide-react';
+import { BarChart3, Download, Calendar, ArrowUpRight, TrendingUp, IndianRupee } from 'lucide-react';
+import { formatPrice } from '../../utils/currency';
 
 export const AdminReportsPage: React.FC = () => {
   const [stats, setStats] = useState<any>(null);
@@ -27,12 +28,11 @@ export const AdminReportsPage: React.FC = () => {
       'Date',
       'Customer',
       'Email',
-      'Phone',
-      'Subtotal',
-      'Discount',
-      'Shipping Fee',
-      'Tax',
-      'Total Amount',
+      'Subtotal (INR)',
+      'Discount (INR)',
+      'Shipping Fee (INR)',
+      'Tax (INR)',
+      'Total Amount (INR)',
       'Payment Method',
       'Payment Status',
       'Order Status',
@@ -96,25 +96,25 @@ export const AdminReportsPage: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs space-y-2">
           <span className="text-xs font-bold text-slate-500 uppercase">Gross Merchandise Value</span>
-          <h3 className="font-black text-2xl text-slate-900">${stats.grossSales.toFixed(2)}</h3>
+          <h3 className="font-black text-2xl text-slate-900">{formatPrice(stats.grossSales)}</h3>
           <p className="text-[10px] text-slate-400">Total catalog items pre-discount value</p>
         </div>
 
         <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs space-y-2">
           <span className="text-xs font-bold text-slate-500 uppercase">Coupons & Discounts Given</span>
-          <h3 className="font-black text-2xl text-rose-600">-${stats.totalDiscounts.toFixed(2)}</h3>
+          <h3 className="font-black text-2xl text-rose-600">-{formatPrice(stats.totalDiscounts)}</h3>
           <p className="text-[10px] text-slate-400">Promotions & customer savings</p>
         </div>
 
         <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs space-y-2">
           <span className="text-xs font-bold text-slate-500 uppercase">Shipping Revenue</span>
-          <h3 className="font-black text-2xl text-blue-600">+${stats.totalShippingRevenue.toFixed(2)}</h3>
+          <h3 className="font-black text-2xl text-blue-600">+{formatPrice(stats.totalShippingRevenue)}</h3>
           <p className="text-[10px] text-slate-400">Courier delivery charges collected</p>
         </div>
 
         <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs space-y-2">
           <span className="text-xs font-bold text-slate-500 uppercase">Total Settled Revenue</span>
-          <h3 className="font-black text-2xl text-emerald-600">${stats.totalSales.toFixed(2)}</h3>
+          <h3 className="font-black text-2xl text-emerald-600">{formatPrice(stats.totalSales)}</h3>
           <p className="text-[10px] text-slate-400">Total net incoming revenue</p>
         </div>
       </div>
@@ -138,9 +138,9 @@ export const AdminReportsPage: React.FC = () => {
                 <tr key={idx} className="hover:bg-slate-50/60">
                   <td className="py-3.5 px-3 font-semibold text-slate-800">{d.date}</td>
                   <td className="py-3.5 px-3 font-bold text-slate-700">{d.ordersCount} orders</td>
-                  <td className="py-3.5 px-3 font-black text-slate-900">${d.sales.toFixed(2)}</td>
+                  <td className="py-3.5 px-3 font-black text-slate-900">{formatPrice(d.sales)}</td>
                   <td className="py-3.5 px-3 text-slate-500">
-                    ${d.ordersCount > 0 ? (d.sales / d.ordersCount).toFixed(2) : '0.00'}
+                    {formatPrice(d.ordersCount > 0 ? d.sales / d.ordersCount : 0)}
                   </td>
                 </tr>
               ))}

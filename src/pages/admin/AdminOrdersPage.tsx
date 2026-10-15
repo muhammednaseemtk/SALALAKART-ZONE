@@ -13,6 +13,7 @@ import {
   RotateCcw,
   XCircle,
 } from 'lucide-react';
+import { formatPrice } from '../../utils/currency';
 
 export const AdminOrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -149,7 +150,7 @@ export const AdminOrdersPage: React.FC = () => {
                       {ord.items.length} {ord.items.length === 1 ? 'item' : 'items'}
                     </td>
                     <td className="py-3.5 px-4 font-extrabold text-slate-900">
-                      ${ord.total_amount.toFixed(2)}
+                      {formatPrice(ord.total_amount)}
                     </td>
                     <td className="py-3.5 px-4">
                       <span className="uppercase font-bold text-slate-700 text-[10px] block">

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
 import { Order } from '../../types';
 import { CreditCard, Banknote, Smartphone, CheckCircle, Clock, ShieldCheck, AlertCircle } from 'lucide-react';
+import { formatPrice } from '../../utils/currency';
 
 export const AdminPaymentsPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -36,7 +37,7 @@ export const AdminPaymentsPage: React.FC = () => {
             Payment Records & Gateways
           </h1>
           <p className="text-xs text-slate-500">
-            Audit payment methods, collected funds and pending receivables
+            Audit payment methods, collected funds and pending receivables (INR)
           </p>
         </div>
       </div>
@@ -45,13 +46,13 @@ export const AdminPaymentsPage: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs space-y-2">
           <span className="text-xs font-bold text-slate-500 uppercase">Settled / Collected Payments</span>
-          <h3 className="font-black text-2xl text-emerald-600">${totalCollected.toFixed(2)}</h3>
+          <h3 className="font-black text-2xl text-emerald-600">{formatPrice(totalCollected)}</h3>
           <p className="text-[10px] text-slate-400">Verified digital and delivered payments</p>
         </div>
 
         <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs space-y-2">
           <span className="text-xs font-bold text-slate-500 uppercase">Pending Cash on Delivery</span>
-          <h3 className="font-black text-2xl text-amber-600">${pendingCod.toFixed(2)}</h3>
+          <h3 className="font-black text-2xl text-amber-600">{formatPrice(pendingCod)}</h3>
           <p className="text-[10px] text-slate-400">Due upon courier delivery handover</p>
         </div>
 
@@ -94,7 +95,7 @@ export const AdminPaymentsPage: React.FC = () => {
                         {o.payment_method}
                       </span>
                     </td>
-                    <td className="py-3.5 px-3 font-extrabold text-slate-900">${o.total_amount.toFixed(2)}</td>
+                    <td className="py-3.5 px-3 font-extrabold text-slate-900">{formatPrice(o.total_amount)}</td>
                     <td className="py-3.5 px-3">
                       <span
                         className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase ${
@@ -104,7 +105,7 @@ export const AdminPaymentsPage: React.FC = () => {
                         {o.payment_status}
                       </span>
                     </td>
-                    <td className="py-3.5 px-3 text-slate-400">{new Date(o.created_at).toLocaleDateString()}</td>
+                    <td className="py-3.5 px-3 text-slate-400">{new Date(o.created_at).toLocaleDateString('en-IN')}</td>
                   </tr>
                 ))}
               </tbody>

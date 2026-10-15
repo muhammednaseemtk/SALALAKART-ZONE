@@ -21,6 +21,7 @@ import {
   Send,
   AlertCircle,
 } from 'lucide-react';
+import { formatPrice } from '../utils/currency';
 
 export const ProductDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -248,16 +249,16 @@ export const ProductDetailPage: React.FC = () => {
           {/* Pricing */}
           <div className="bg-slate-50/70 p-4 rounded-2xl border border-slate-100 flex items-baseline gap-3">
             <span className="font-extrabold text-3xl sm:text-4xl text-slate-900">
-              ${finalPrice.toFixed(2)}
+              {formatPrice(finalPrice)}
             </span>
             {product.sale_price && (
               <span className="text-lg text-slate-400 line-through">
-                ${product.price.toFixed(2)}
+                {formatPrice(product.price)}
               </span>
             )}
             {product.sale_price && (
               <span className="text-xs font-bold text-rose-600 bg-rose-100/70 px-2.5 py-1 rounded-full">
-                Save ${(product.price - product.sale_price).toFixed(2)} (
+                Save {formatPrice(product.price - product.sale_price)} (
                 {Math.round(((product.price - product.sale_price) / product.price) * 100)}% Off)
               </span>
             )}
@@ -288,7 +289,7 @@ export const ProductDetailPage: React.FC = () => {
                     <span>{v.value}</span>
                     {v.price_adjustment > 0 && (
                       <span className="text-[10px] text-slate-400 ml-1">
-                        (+${v.price_adjustment.toFixed(2)})
+                        (+{formatPrice(v.price_adjustment)})
                       </span>
                     )}
                   </button>
@@ -355,7 +356,7 @@ export const ProductDetailPage: React.FC = () => {
                 ) : (
                   <>
                     <ShoppingCart className="w-5 h-5" />
-                    <span>Add to Cart (${(finalPrice * quantity).toFixed(2)})</span>
+                    <span>Add to Cart ({formatPrice(finalPrice * quantity)})</span>
                   </>
                 )}
               </button>
@@ -389,7 +390,7 @@ export const ProductDetailPage: React.FC = () => {
             <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100">
               <Truck className="w-5 h-5 text-pink-600 mx-auto mb-1" />
               <p className="text-[11px] font-bold text-slate-800">Free Delivery</p>
-              <p className="text-[10px] text-slate-500">On orders over $75</p>
+              <p className="text-[10px] text-slate-500">On orders over ₹75</p>
             </div>
             <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100">
               <ShieldCheck className="w-5 h-5 text-emerald-600 mx-auto mb-1" />
@@ -635,11 +636,11 @@ export const ProductDetailPage: React.FC = () => {
         <div className="min-w-0">
           <div className="flex items-baseline gap-1.5">
             <span className="font-extrabold text-lg text-slate-900 leading-none">
-              ${finalPrice.toFixed(2)}
+              {formatPrice(finalPrice)}
             </span>
             {product.sale_price && (
               <span className="text-[11px] text-slate-400 line-through">
-                ${product.price.toFixed(2)}
+                {formatPrice(product.price)}
               </span>
             )}
           </div>

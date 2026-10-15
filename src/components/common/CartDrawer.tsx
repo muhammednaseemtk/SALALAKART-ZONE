@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
+import { formatPrice } from '../../utils/currency';
 
 export const CartDrawer: React.FC = () => {
   const {
@@ -79,7 +80,7 @@ export const CartDrawer: React.FC = () => {
           <div className="bg-amber-50/70 border-b border-amber-100 px-5 py-3">
             {diffToFreeShipping > 0 ? (
               <p className="text-xs text-amber-800 font-medium flex items-center gap-1.5">
-                <span>🚚</span> Add <span className="font-bold text-amber-950">${diffToFreeShipping.toFixed(2)}</span> more to unlock <span className="font-bold text-emerald-700">FREE Delivery</span>!
+                <span>🚚</span> Add <span className="font-bold text-amber-950">{formatPrice(diffToFreeShipping)}</span> more to unlock <span className="font-bold text-emerald-700">FREE Delivery</span>!
               </p>
             ) : (
               <p className="text-xs text-emerald-800 font-bold flex items-center gap-1.5">
@@ -173,9 +174,9 @@ export const CartDrawer: React.FC = () => {
                       </div>
 
                       <div className="text-right">
-                        <span className="text-xs text-slate-400 block">${item.unit_price.toFixed(2)} each</span>
+                        <span className="text-xs text-slate-400 block">{formatPrice(item.unit_price)} each</span>
                         <span className="font-bold text-sm text-slate-900">
-                          ${(item.unit_price * item.quantity).toFixed(2)}
+                          {formatPrice(item.unit_price * item.quantity)}
                         </span>
                       </div>
                     </div>
@@ -193,7 +194,7 @@ export const CartDrawer: React.FC = () => {
                 <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl text-xs">
                   <div className="flex items-center gap-1.5 text-emerald-800 font-semibold">
                     <Sparkles className="w-4 h-4 text-emerald-600" />
-                    <span>Applied: <strong>{appliedCoupon.code}</strong> (-${discountAmount.toFixed(2)})</span>
+                    <span>Applied: <strong>{appliedCoupon.code}</strong> (-{formatPrice(discountAmount)})</span>
                   </div>
                   <button
                     onClick={removeCoupon}
@@ -231,12 +232,12 @@ export const CartDrawer: React.FC = () => {
               <div className="space-y-1.5 pt-1 text-xs text-slate-600">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span className="font-semibold text-slate-800">${subtotal.toFixed(2)}</span>
+                  <span className="font-semibold text-slate-800">{formatPrice(subtotal)}</span>
                 </div>
                 {discountAmount > 0 && (
                   <div className="flex justify-between text-emerald-600">
                     <span>Discount</span>
-                    <span className="font-semibold">-${discountAmount.toFixed(2)}</span>
+                    <span className="font-semibold">-{formatPrice(discountAmount)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-slate-500">
@@ -245,7 +246,7 @@ export const CartDrawer: React.FC = () => {
                 </div>
                 <div className="flex justify-between text-base font-bold text-slate-900 pt-2 border-t border-slate-100">
                   <span>Estimated Total</span>
-                  <span className="text-pink-600 text-lg">${totalAmount.toFixed(2)}</span>
+                  <span className="text-pink-600 text-lg">{formatPrice(totalAmount)}</span>
                 </div>
               </div>
 

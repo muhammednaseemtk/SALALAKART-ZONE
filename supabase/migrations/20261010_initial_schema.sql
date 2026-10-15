@@ -297,7 +297,7 @@ CREATE TABLE IF NOT EXISTS public.payments (
   provider TEXT NOT NULL,
   transaction_id TEXT,
   amount NUMERIC(12, 2) NOT NULL,
-  currency TEXT NOT NULL DEFAULT 'USD',
+  currency TEXT NOT NULL DEFAULT 'INR',
   status TEXT NOT NULL DEFAULT 'pending',
   payment_details JSONB DEFAULT '{}'::jsonb,
   created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc', NOW()) NOT NULL

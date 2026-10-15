@@ -19,6 +19,7 @@ import {
   AlertCircle,
   X,
 } from 'lucide-react';
+import { formatPrice } from '../utils/currency';
 
 export const AccountPage: React.FC = () => {
   const { user, isAuthenticated, logout, updateProfile } = useAuth();
@@ -322,7 +323,7 @@ export const AccountPage: React.FC = () => {
                           {ord.items.length === 1 ? 'item' : 'items'}
                         </p>
                         <p className="text-xs font-bold text-slate-800">
-                          Total: ${ord.total_amount.toFixed(2)} ({ord.payment_method.toUpperCase()})
+                          Total: {formatPrice(ord.total_amount)} ({ord.payment_method.toUpperCase()})
                         </p>
                       </div>
 
@@ -452,8 +453,8 @@ export const AccountPage: React.FC = () => {
                             )}
                           </td>
                           <td className="py-3 text-center font-bold text-slate-700">{item.quantity}</td>
-                          <td className="py-3 text-right text-slate-700">${item.price.toFixed(2)}</td>
-                          <td className="py-3 text-right font-bold text-slate-900">${item.total_price.toFixed(2)}</td>
+                          <td className="py-3 text-right text-slate-700">{formatPrice(item.price)}</td>
+                          <td className="py-3 text-right font-bold text-slate-900">{formatPrice(item.total_price)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -465,25 +466,25 @@ export const AccountPage: React.FC = () => {
                   <div className="w-64 space-y-2 text-xs">
                     <div className="flex justify-between text-slate-600">
                       <span>Subtotal</span>
-                      <span className="font-semibold">${selectedOrder.subtotal.toFixed(2)}</span>
+                      <span className="font-semibold">{formatPrice(selectedOrder.subtotal)}</span>
                     </div>
                     {selectedOrder.discount_amount > 0 && (
                       <div className="flex justify-between text-emerald-600 font-bold">
                         <span>Discount ({selectedOrder.coupon_code})</span>
-                        <span>-${selectedOrder.discount_amount.toFixed(2)}</span>
+                        <span>-{formatPrice(selectedOrder.discount_amount)}</span>
                       </div>
                     )}
                     <div className="flex justify-between text-slate-600">
                       <span>Shipping Fee</span>
-                      <span>${selectedOrder.shipping_fee.toFixed(2)}</span>
+                      <span>{formatPrice(selectedOrder.shipping_fee)}</span>
                     </div>
                     <div className="flex justify-between text-slate-600">
                       <span>Tax (5%)</span>
-                      <span>${selectedOrder.tax_amount.toFixed(2)}</span>
+                      <span>{formatPrice(selectedOrder.tax_amount)}</span>
                     </div>
                     <div className="flex justify-between text-base font-extrabold text-slate-900 pt-2 border-t border-slate-200">
                       <span>Total Paid / Due</span>
-                      <span className="text-pink-600">${selectedOrder.total_amount.toFixed(2)}</span>
+                      <span className="text-pink-600">{formatPrice(selectedOrder.total_amount)}</span>
                     </div>
                   </div>
                 </div>

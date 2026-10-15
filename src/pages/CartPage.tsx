@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, Sparkles, ShieldCheck, Truck } from 'lucide-react';
+import { formatPrice } from '../utils/currency';
 
 export const CartPage: React.FC = () => {
   const {
@@ -107,7 +108,7 @@ export const CartPage: React.FC = () => {
                       </span>
                     )}
                     <p className="text-xs text-slate-500 mt-1 font-semibold">
-                      ${item.unit_price.toFixed(2)} each
+                      {formatPrice(item.unit_price)} each
                     </p>
                   </div>
                 </div>
@@ -135,7 +136,7 @@ export const CartPage: React.FC = () => {
                   {/* Subtotal */}
                   <div className="text-right">
                     <span className="font-extrabold text-base text-slate-900 block">
-                      ${(item.unit_price * item.quantity).toFixed(2)}
+                      {formatPrice(item.unit_price * item.quantity)}
                     </span>
                   </div>
 
@@ -216,25 +217,25 @@ export const CartPage: React.FC = () => {
             <div className="space-y-2 pt-2 text-xs text-slate-600 border-t border-slate-100">
               <div className="flex justify-between">
                 <span>Items Subtotal</span>
-                <span className="font-semibold text-slate-900">${subtotal.toFixed(2)}</span>
+                <span className="font-semibold text-slate-900">{formatPrice(subtotal)}</span>
               </div>
               {discountAmount > 0 && (
                 <div className="flex justify-between text-emerald-600 font-bold">
                   <span>Coupon Discount</span>
-                  <span>-${discountAmount.toFixed(2)}</span>
+                  <span>-{formatPrice(discountAmount)}</span>
                 </div>
               )}
               <div className="flex justify-between">
                 <span>Estimated Delivery</span>
-                <span>{subtotal >= 75 ? <strong className="text-emerald-600">FREE</strong> : `$${shippingFee.toFixed(2)}`}</span>
+                <span>{subtotal >= 75 ? <strong className="text-emerald-600">FREE</strong> : formatPrice(shippingFee)}</span>
               </div>
               <div className="flex justify-between">
                 <span>Estimated Taxes (5%)</span>
-                <span>${taxAmount.toFixed(2)}</span>
+                <span>{formatPrice(taxAmount)}</span>
               </div>
               <div className="flex justify-between text-base font-extrabold text-slate-900 pt-3 border-t border-slate-100">
                 <span>Estimated Total</span>
-                <span className="text-pink-600 text-xl">${totalAmount.toFixed(2)}</span>
+                <span className="text-pink-600 text-xl">{formatPrice(totalAmount)}</span>
               </div>
             </div>
 
@@ -254,7 +255,7 @@ export const CartPage: React.FC = () => {
             </p>
             <p className="flex items-center gap-2 font-medium text-slate-700">
               <Truck className="w-4 h-4 text-cyan-600" />
-              <span>Free Delivery On Orders Over $75</span>
+              <span>Free Delivery On Orders Over ₹75</span>
             </p>
           </div>
         </div>

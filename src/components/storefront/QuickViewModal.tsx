@@ -4,6 +4,7 @@ import { Product, ProductVariant } from '../../types';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { X, Heart, ShoppingCart, Star, Check, ShieldCheck, Truck } from 'lucide-react';
+import { formatPrice } from '../../utils/currency';
 
 interface QuickViewModalProps {
   product: Product | null;
@@ -112,16 +113,16 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, onClose
               {/* Price */}
               <div className="flex items-baseline gap-2.5 pt-1">
                 <span className="text-3xl font-extrabold text-slate-900">
-                  ${finalPrice.toFixed(2)}
+                  {formatPrice(finalPrice)}
                 </span>
                 {product.sale_price && (
                   <span className="text-base text-slate-400 line-through">
-                    ${product.price.toFixed(2)}
+                    {formatPrice(product.price)}
                   </span>
                 )}
                 {product.sale_price && (
                   <span className="text-xs font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full">
-                    Save ${(product.price - product.sale_price).toFixed(2)}
+                    Save {formatPrice(product.price - product.sale_price)}
                   </span>
                 )}
               </div>
@@ -204,7 +205,7 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({ product, onClose
                   ) : (
                     <>
                       <ShoppingCart className="w-4 h-4" />
-                      <span>Add to Cart (${(finalPrice * quantity).toFixed(2)})</span>
+                      <span>Add to Cart ({formatPrice(finalPrice * quantity)})</span>
                     </>
                   )}
                 </button>

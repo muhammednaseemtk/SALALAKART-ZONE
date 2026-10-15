@@ -12,6 +12,9 @@ import {
   Check,
   RotateCcw,
 } from 'lucide-react';
+import { formatPrice } from '../utils/currency';
+
+const DEFAULT_MAX_PRICE = 25000;
 
 export const ShopPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -26,7 +29,7 @@ export const ShopPage: React.FC = () => {
   // Filters state
   const [selectedCategory, setSelectedCategory] = useState<string>(categoryParam);
   const [selectedBrand, setSelectedBrand] = useState<string>('');
-  const [priceRange, setPriceRange] = useState<number>(500);
+  const [priceRange, setPriceRange] = useState<number>(DEFAULT_MAX_PRICE);
   const [inStockOnly, setInStockOnly] = useState<boolean>(false);
   const [sortBy, setSortBy] = useState<'featured' | 'price-asc' | 'price-desc' | 'latest' | 'rating'>('featured');
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -73,14 +76,14 @@ export const ShopPage: React.FC = () => {
   const clearAllFilters = () => {
     setSelectedCategory('');
     setSelectedBrand('');
-    setPriceRange(500);
+    setPriceRange(DEFAULT_MAX_PRICE);
     setInStockOnly(false);
     setSortBy('featured');
     setSearchParams({});
   };
 
   const hasActiveFilters = Boolean(
-    selectedCategory || selectedBrand || priceRange < 500 || inStockOnly || filterParam || searchParam
+    selectedCategory || selectedBrand || priceRange < DEFAULT_MAX_PRICE || inStockOnly || filterParam || searchParam
   );
 
   // Filter content component reused between desktop sidebar and mobile drawer
@@ -90,21 +93,21 @@ export const ShopPage: React.FC = () => {
       <div className="space-y-2">
         <div className="flex justify-between text-xs font-bold text-slate-800">
           <span>Max Price</span>
-          <span className="text-pink-600 font-extrabold">${priceRange}</span>
+          <span className="text-pink-600 font-extrabold">{formatPrice(priceRange)}</span>
         </div>
         <input
           type="range"
-          min="10"
-          max="500"
-          step="10"
+          min="0"
+          max={DEFAULT_MAX_PRICE}
+          step="100"
           value={priceRange}
           onChange={(e) => setPriceRange(Number(e.target.value))}
           className="w-full accent-pink-600 cursor-pointer h-2 bg-slate-100 rounded-lg"
         />
         <div className="flex justify-between text-[11px] text-slate-400 font-medium">
-          <span>$10</span>
-          <span>$250</span>
-          <span>$500+</span>
+          <span>{formatPrice(0)}</span>
+          <span>{formatPrice(10000)}</span>
+          <span>{formatPrice(DEFAULT_MAX_PRICE)}+</span>
         </div>
       </div>
 

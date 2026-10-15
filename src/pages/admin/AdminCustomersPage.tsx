@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
 import { UserProfile, Order } from '../../types';
 import { Users, Search, ShoppingBag, Phone, Mail, ShieldCheck } from 'lucide-react';
+import { formatPrice } from '../../utils/currency';
 
 export const AdminCustomersPage: React.FC = () => {
   const [customers, setCustomers] = useState<UserProfile[]>([]);
@@ -108,12 +109,12 @@ export const AdminCustomersPage: React.FC = () => {
                         <span className="font-bold text-slate-800">{custOrders.length} orders</span>
                         {totalSpent > 0 && (
                           <span className="text-[10px] text-slate-400 block font-semibold">
-                            Spent ${totalSpent.toFixed(2)}
+                            Spent {formatPrice(totalSpent)}
                           </span>
                         )}
                       </td>
                       <td className="py-3.5 px-4 text-slate-400">
-                        {new Date(c.created_at).toLocaleDateString()}
+                        {new Date(c.created_at).toLocaleDateString('en-IN')}
                       </td>
                     </tr>
                   );

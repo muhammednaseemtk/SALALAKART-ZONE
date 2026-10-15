@@ -148,6 +148,40 @@ export const AdminSettingsPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Store Currency & Regional Defaults */}
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-4">
+          <h2 className="font-brand font-bold text-base text-slate-900 pb-2 border-b border-slate-100 flex items-center justify-between">
+            <span>Currency & Regional Settings</span>
+            <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full">
+              Indian Rupees (INR / ₹)
+            </span>
+          </h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1">Currency Code (ISO)</label>
+              <input
+                type="text"
+                value={settings.currency_code || 'INR'}
+                onChange={(e) => handleChange('currency_code', e.target.value.toUpperCase())}
+                className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-slate-50 font-bold uppercase"
+              />
+              <p className="text-[10px] text-slate-400 mt-1">Default: INR for Indian Rupees</p>
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-1">Currency Symbol</label>
+              <input
+                type="text"
+                value={settings.currency_symbol || '₹'}
+                onChange={(e) => handleChange('currency_symbol', e.target.value)}
+                className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-slate-50 font-bold"
+              />
+              <p className="text-[10px] text-slate-400 mt-1">Default: ₹ (Rupee symbol)</p>
+            </div>
+          </div>
+        </div>
+
         {/* Taxes & Free Shipping Threshold */}
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-4">
           <h2 className="font-brand font-bold text-base text-slate-900 pb-2 border-b border-slate-100">
@@ -168,7 +202,7 @@ export const AdminSettingsPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">Free Delivery Min Order ($)</label>
+              <label className="text-xs font-bold text-slate-700 block mb-1">Free Delivery Min Order (₹)</label>
               <input
                 type="number"
                 step="1"

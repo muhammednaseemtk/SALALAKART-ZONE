@@ -4,6 +4,7 @@ import { Product } from '../../types';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { Heart, ShoppingCart, Star, Eye, Check } from 'lucide-react';
+import { formatPrice } from '../../utils/currency';
 
 interface ProductCardProps {
   product: Product;
@@ -150,11 +151,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onQuickView }
           <div className="min-w-0">
             <div className="flex flex-wrap items-baseline gap-1">
               <span className="font-extrabold text-sm sm:text-base text-slate-900 leading-tight">
-                ${currentPrice.toFixed(2)}
+                {formatPrice(currentPrice)}
               </span>
               {hasDiscount && (
                 <span className="text-[10px] sm:text-xs text-slate-400 line-through">
-                  ${product.price.toFixed(2)}
+                  {formatPrice(product.price)}
                 </span>
               )}
             </div>

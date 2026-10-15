@@ -19,6 +19,7 @@ import {
   Package,
   SlidersHorizontal,
 } from 'lucide-react';
+import { formatPrice } from '../../utils/currency';
 
 export const Navbar: React.FC = () => {
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
@@ -167,11 +168,11 @@ export const Navbar: React.FC = () => {
                       </div>
                       <div className="text-right">
                         <span className="font-bold text-sm text-pink-600">
-                          ${(prod.sale_price || prod.price).toFixed(2)}
+                          {formatPrice(prod.sale_price || prod.price)}
                         </span>
                         {prod.sale_price && (
                           <span className="text-xs text-slate-400 line-through block">
-                            ${prod.price.toFixed(2)}
+                            {formatPrice(prod.price)}
                           </span>
                         )}
                       </div>
@@ -224,7 +225,7 @@ export const Navbar: React.FC = () => {
               )}
             </div>
             <span className="hidden md:inline font-bold text-xs">
-              ${totalAmount.toFixed(2)}
+              {formatPrice(totalAmount)}
             </span>
           </button>
 
