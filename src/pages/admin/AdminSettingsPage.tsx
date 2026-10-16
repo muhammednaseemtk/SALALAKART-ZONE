@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
 import { StoreSettings } from '../../types';
-import { Settings, Save, CheckCircle, ShieldCheck, CreditCard, Bell, Sparkles } from 'lucide-react';
+import { Save, CheckCircle } from 'lucide-react';
 
 export const AdminSettingsPage: React.FC = () => {
   const [settings, setSettings] = useState<StoreSettings | null>(null);
@@ -50,7 +50,7 @@ export const AdminSettingsPage: React.FC = () => {
             Store Settings & Policies
           </h1>
           <p className="text-xs text-slate-500">
-            Control branding, announcements, tax rates, and payment methods
+            Control branding and payment methods
           </p>
         </div>
       </div>
@@ -118,99 +118,6 @@ export const AdminSettingsPage: React.FC = () => {
                 value={settings.address}
                 onChange={(e) => handleChange('address', e.target.value)}
                 className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-slate-50"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Top Announcement Bar */}
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-4">
-          <h2 className="font-brand font-bold text-base text-slate-900 pb-2 border-b border-slate-100 flex items-center justify-between">
-            <span>Announcement Bar Banner</span>
-            <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={settings.is_announcement_enabled}
-                onChange={(e) => handleChange('is_announcement_enabled', e.target.checked)}
-                className="rounded text-pink-600 focus:ring-pink-500 w-4 h-4"
-              />
-              <span>Enabled</span>
-            </label>
-          </h2>
-
-          <div>
-            <label className="text-xs font-bold text-slate-700 block mb-1">Announcement Text</label>
-            <input
-              type="text"
-              value={settings.announcement_bar_text}
-              onChange={(e) => handleChange('announcement_bar_text', e.target.value)}
-              className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-slate-50"
-            />
-          </div>
-        </div>
-
-        {/* Store Currency & Regional Defaults */}
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-4">
-          <h2 className="font-brand font-bold text-base text-slate-900 pb-2 border-b border-slate-100 flex items-center justify-between">
-            <span>Currency & Regional Settings</span>
-            <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full">
-              Indian Rupees (INR / ₹)
-            </span>
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">Currency Code (ISO)</label>
-              <input
-                type="text"
-                value={settings.currency_code || 'INR'}
-                onChange={(e) => handleChange('currency_code', e.target.value.toUpperCase())}
-                className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-slate-50 font-bold uppercase"
-              />
-              <p className="text-[10px] text-slate-400 mt-1">Default: INR for Indian Rupees</p>
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">Currency Symbol</label>
-              <input
-                type="text"
-                value={settings.currency_symbol || '₹'}
-                onChange={(e) => handleChange('currency_symbol', e.target.value)}
-                className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-slate-50 font-bold"
-              />
-              <p className="text-[10px] text-slate-400 mt-1">Default: ₹ (Rupee symbol)</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Taxes & Free Shipping Threshold */}
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-4">
-          <h2 className="font-brand font-bold text-base text-slate-900 pb-2 border-b border-slate-100">
-            Taxes & Free Shipping Threshold
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">Tax Rate (Decimal e.g. 0.05 for 5%)</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={settings.tax_rate}
-                onChange={(e) => handleChange('tax_rate', Number(e.target.value))}
-                className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-slate-50 font-bold"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">Free Delivery Min Order (₹)</label>
-              <input
-                type="number"
-                step="1"
-                min="0"
-                value={settings.free_shipping_threshold}
-                onChange={(e) => handleChange('free_shipping_threshold', Number(e.target.value))}
-                className="w-full text-xs p-3 rounded-xl border border-slate-200 bg-slate-50 font-bold"
               />
             </div>
           </div>
