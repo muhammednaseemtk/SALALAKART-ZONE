@@ -64,7 +64,7 @@ export const Footer: React.FC = () => {
 
       {/* Main Footer Links */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* Brand Info */}
           <div className="lg:col-span-2 space-y-4">
             <div className="bg-white/95 dark:bg-black/50 p-3 rounded-2xl inline-block shadow-md border border-slate-200/80 dark:border-white/10">
@@ -92,43 +92,6 @@ export const Footer: React.FC = () => {
                 </a>
               </p>
             </div>
-          </div>
-
-          {/* Categories */}
-          <div>
-            <h4 className="font-brand font-bold text-white text-base mb-4 tracking-wide">Popular Categories</h4>
-            <ul className="space-y-2.5 text-xs text-slate-400">
-              <li>
-                <Link to="/category/remote-control-cars" className="hover:text-pink-400 transition-colors">
-                  Remote-Control Cars
-                </Link>
-              </li>
-              <li>
-                <Link to="/category/watches" className="hover:text-pink-400 transition-colors">
-                  Kids & Smart Watches
-                </Link>
-              </li>
-              <li>
-                <Link to="/category/educational-toys" className="hover:text-pink-400 transition-colors">
-                  Educational STEM Kits
-                </Link>
-              </li>
-              <li>
-                <Link to="/category/electronic-gadgets" className="hover:text-pink-400 transition-colors">
-                  Electronic Gadgets
-                </Link>
-              </li>
-              <li>
-                <Link to="/category/gifts" className="hover:text-pink-400 transition-colors">
-                  Heartwarming Gifts
-                </Link>
-              </li>
-              <li>
-                <Link to="/category/board-games-and-puzzles" className="hover:text-pink-400 transition-colors">
-                  Board Games & Puzzles
-                </Link>
-              </li>
-            </ul>
           </div>
 
           {/* Customer Service & Policies */}
