@@ -94,9 +94,9 @@ export const Navbar: React.FC = () => {
   return (
     <header className="sticky top-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-md border-b border-slate-100 dark:border-white/10 shadow-xs transition-colors duration-200">
       {/* Main Header Bar */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3.5 flex items-center justify-between gap-2 sm:gap-4">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2 sm:py-2.5 flex items-center justify-between gap-2 sm:gap-4">
         {/* Left: Mobile Toggle & Brand Logo */}
-        <div className="flex items-center gap-1.5 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="md:hidden p-1.5 sm:p-2 text-slate-700 hover:bg-slate-100 rounded-xl transition-colors"
@@ -106,8 +106,8 @@ export const Navbar: React.FC = () => {
           </button>
 
           {/* Logo */}
-          <div className="origin-left">
-            <BrandLogo size="md" imgClassName="h-[50px] sm:h-[62px]" />
+          <div className="origin-left shrink-0">
+            <BrandLogo size="lg" imgClassName="h-[65px] sm:h-[80px] lg:h-[90px]" />
           </div>
         </div>
 

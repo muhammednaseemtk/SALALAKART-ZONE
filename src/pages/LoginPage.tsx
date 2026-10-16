@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { BrandLogo } from '../components/common/BrandLogo';
-import { Mail, Lock, AlertCircle, ArrowRight, Sparkles } from 'lucide-react';
+import { Mail, Lock, AlertCircle, ArrowRight } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
-  const { login, loginAsDemoCustomer, isAuthenticated } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -102,19 +102,6 @@ export const LoginPage: React.FC = () => {
           </button>
         </form>
 
-        {/* Quick Demo Customer Login for convenience */}
-        <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 text-center">
-          <button
-            type="button"
-            onClick={() => {
-              loginAsDemoCustomer();
-              navigate(from, { replace: true });
-            }}
-            className="w-full py-2.5 px-3 rounded-xl bg-blue-50 text-blue-700 border border-blue-200/80 font-bold text-xs hover:bg-blue-100 transition-colors"
-          >
-            🛍️ One-Click Demo Customer Sign In
-          </button>
-        </div>
 
         <p className="text-center text-xs text-slate-500">
           Don't have an account yet?{' '}
