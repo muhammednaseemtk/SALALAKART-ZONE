@@ -107,7 +107,7 @@ export const Navbar: React.FC = () => {
 
           {/* Logo */}
           <div className="origin-left">
-            <BrandLogo size="md" />
+            <BrandLogo size="md" imgClassName="h-[50px] sm:h-[62px]" />
           </div>
         </div>
 

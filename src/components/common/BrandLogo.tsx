@@ -9,12 +9,14 @@ export interface BrandLogoProps {
   showTagline?: boolean;
   useImage?: boolean;
   className?: string;
+  imgClassName?: string;
   forceTheme?: 'light' | 'dark';
 }
 
 export const BrandLogo: React.FC<BrandLogoProps> = ({
   size = 'md',
   className = '',
+  imgClassName = '',
   forceTheme,
 }) => {
   const { theme } = useTheme();
@@ -37,7 +39,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
       <img
         src={logoSrc}
         alt="SALALAKART ZONE"
-        className={`${sizeClasses} w-auto max-w-full object-contain`}
+        className={`${imgClassName || sizeClasses} w-auto max-w-full object-contain`}
         loading="eager"
       />
     </Link>
