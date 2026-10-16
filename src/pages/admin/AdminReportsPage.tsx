@@ -129,7 +129,7 @@ export const AdminReportsPage: React.FC = () => {
         </div>
 
         <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs space-y-2">
-          <span className="text-xs font-bold text-slate-500 uppercase">Coupons & Discounts Given</span>
+          <span className="text-xs font-bold text-slate-500 uppercase">Discounts Given</span>
           <h3 className="font-black text-2xl text-rose-600">-{formatPrice(stats.totalDiscounts)}</h3>
           <p className="text-[10px] text-slate-400">Promotions & customer savings</p>
         </div>

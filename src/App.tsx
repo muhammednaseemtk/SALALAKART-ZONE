@@ -36,7 +36,6 @@ import { AdminOrdersPage } from './pages/admin/AdminOrdersPage';
 import { AdminOrderDetailPage } from './pages/admin/AdminOrderDetailPage';
 import { AdminCustomersPage } from './pages/admin/AdminCustomersPage';
 import { AdminInventoryPage } from './pages/admin/AdminInventoryPage';
-import { AdminCouponsPage } from './pages/admin/AdminCouponsPage';
 import { AdminBannersPage } from './pages/admin/AdminBannersPage';
 import { AdminReviewsPage } from './pages/admin/AdminReviewsPage';
 import { AdminPaymentsPage } from './pages/admin/AdminPaymentsPage';
@@ -92,7 +91,7 @@ export function App() {
                   <Route path="orders/:id" element={<AdminOrderDetailPage />} />
                   <Route path="customers" element={<AdminCustomersPage />} />
                   <Route path="inventory" element={<AdminInventoryPage />} />
-                  <Route path="coupons" element={<AdminCouponsPage />} />
+                  <Route path="coupons" element={<Navigate to="/admin/dashboard" replace />} />
                   <Route path="banners" element={<AdminBannersPage />} />
                   <Route path="reviews" element={<AdminReviewsPage />} />
                   <Route path="payments" element={<AdminPaymentsPage />} />
