@@ -6,6 +6,7 @@ import { CartDrawer } from './CartDrawer';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import {
   Home,
   SlidersHorizontal,
@@ -19,9 +20,15 @@ export const StorefrontLayout: React.FC = () => {
   const { itemCount, setIsCartOpen } = useCart();
   const { items: wishlistItems } = useWishlist();
   const { isAuthenticated } = useAuth();
+  const { theme } = useTheme();
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-black text-slate-800 dark:text-white font-sans selection:bg-[#033d2f] selection:text-white dark:selection:bg-[#8fe40f] dark:selection:text-[#033d2f] pb-16 md:pb-0 transition-colors duration-200">
+    <div
+      className={`min-h-screen flex flex-col bg-slate-50 dark:bg-black text-slate-800 dark:text-white font-sans selection:bg-[#033d2f] selection:text-white dark:selection:bg-[#8fe40f] dark:selection:text-[#033d2f] pb-16 md:pb-0 transition-colors duration-200 ${
+        theme === 'dark' ? 'dark' : 'light'
+      }`}
+      data-theme={theme}
+    >
       {/* Main sticky navigation */}
       <Navbar />
 

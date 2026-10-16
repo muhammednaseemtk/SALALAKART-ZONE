@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { BrandLogo } from '../../components/common/BrandLogo';
 import { ThemeToggle } from '../../components/common/ThemeToggle';
 import {
@@ -25,6 +26,7 @@ export const AdminLoginPage: React.FC = () => {
     user,
     logout,
   } = useAuth();
+  const { theme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -106,7 +108,12 @@ export const AdminLoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 selection:bg-[#033d2f] selection:text-white dark:selection:bg-[#8fe40f] dark:selection:text-[#033d2f] relative">
+    <div
+      className={`min-h-screen bg-slate-100 dark:bg-slate-950 flex items-center justify-center p-4 selection:bg-[#033d2f] selection:text-white dark:selection:bg-[#8fe40f] dark:selection:text-[#033d2f] relative transition-colors duration-200 ${
+        theme === 'dark' ? 'dark' : 'light'
+      }`}
+      data-theme={theme}
+    >
       <div className="absolute top-4 right-4 z-20">
         <ThemeToggle />
       </div>

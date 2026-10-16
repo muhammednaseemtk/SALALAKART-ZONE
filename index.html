@@ -13,13 +13,20 @@
     <script>
       (function() {
         try {
-          var t = localStorage.getItem('salalakart_theme');
+          var isAdmin = window.location.pathname.indexOf('/admin') === 0;
+          var key = isAdmin ? 'salalakart_admin_theme' : 'salalakart_user_theme';
+          var t = localStorage.getItem(key);
+          if (!t && !isAdmin) {
+            t = localStorage.getItem('salalakart_theme');
+          }
           if (t === 'dark') {
             document.documentElement.classList.add('dark');
+            document.documentElement.classList.remove('light');
             document.documentElement.setAttribute('data-theme', 'dark');
             document.documentElement.style.colorScheme = 'dark';
           } else {
             document.documentElement.classList.remove('dark');
+            document.documentElement.classList.add('light');
             document.documentElement.setAttribute('data-theme', 'light');
             document.documentElement.style.colorScheme = 'light';
           }

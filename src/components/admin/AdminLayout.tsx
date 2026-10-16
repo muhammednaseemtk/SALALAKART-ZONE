@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { AdminSidebar } from './AdminSidebar';
 import { AdminHeader } from './AdminHeader';
 
 export const AdminLayout: React.FC = () => {
   const { user, isAuthenticated, isAdmin, isLoading } = useAuth();
+  const { theme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -55,7 +57,12 @@ export const AdminLayout: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 dark:bg-black text-slate-900 dark:text-white flex flex-col font-sans transition-colors duration-200">
+    <div
+      className={`min-h-screen bg-slate-100 dark:bg-black text-slate-900 dark:text-white flex flex-col font-sans transition-colors duration-200 ${
+        theme === 'dark' ? 'dark' : 'light'
+      }`}
+      data-theme={theme}
+    >
       <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="lg:pl-64 flex flex-col flex-1 min-w-0">

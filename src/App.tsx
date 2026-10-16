@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider } from './context/ThemeContext';
+import { ThemeProvider, UserThemeProvider, AdminThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
@@ -51,7 +51,13 @@ export function App() {
             <WishlistProvider>
               <Routes>
                 {/* Customer Website Routes */}
-                <Route element={<StorefrontLayout />}>
+                <Route
+                  element={
+                    <UserThemeProvider>
+                      <StorefrontLayout />
+                    </UserThemeProvider>
+                  }
+                >
                   <Route path="/" element={<HomePage />} />
                   <Route path="/shop" element={<ShopPage />} />
                   <Route path="/category/:slug" element={<CategoryPage />} />
@@ -77,10 +83,24 @@ export function App() {
                 </Route>
 
                 {/* Admin Login (Public for Staff) */}
-                <Route path="/admin/login" element={<AdminLoginPage />} />
+                <Route
+                  path="/admin/login"
+                  element={
+                    <AdminThemeProvider>
+                      <AdminLoginPage />
+                    </AdminThemeProvider>
+                  }
+                />
 
                 {/* Protected Admin Dashboard Routes */}
-                <Route path="/admin" element={<AdminLayout />}>
+                <Route
+                  path="/admin"
+                  element={
+                    <AdminThemeProvider>
+                      <AdminLayout />
+                    </AdminThemeProvider>
+                  }
+                >
                   <Route index element={<Navigate to="/admin/dashboard" replace />} />
                   <Route path="dashboard" element={<AdminDashboardPage />} />
                   <Route path="products" element={<AdminProductsPage />} />
@@ -103,21 +123,23 @@ export function App() {
                 <Route
                   path="*"
                   element={
-                    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4 text-center">
-                      <div className="bg-white p-8 rounded-3xl shadow-lg border border-slate-200 max-w-md w-full space-y-4">
-                        <span className="text-4xl">🎈</span>
-                        <h1 className="font-brand font-black text-2xl text-slate-900">Page Not Found</h1>
-                        <p className="text-xs text-slate-500">
-                          The page you are looking for doesn't exist or has moved.
-                        </p>
-                        <a
-                          href="/"
-                          className="inline-block px-6 py-2.5 rounded-xl bg-pink-600 text-white font-bold text-xs"
-                        >
-                          Return Home
-                        </a>
+                    <UserThemeProvider>
+                      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-black p-4 text-center">
+                        <div className="bg-white dark:bg-[#033d2f] p-8 rounded-3xl shadow-lg border border-slate-200 dark:border-white/10 max-w-md w-full space-y-4">
+                          <span className="text-4xl">🎈</span>
+                          <h1 className="font-brand font-black text-2xl text-slate-900 dark:text-white">Page Not Found</h1>
+                          <p className="text-xs text-slate-500 dark:text-[#f2f3ed]/80">
+                            The page you are looking for doesn't exist or has moved.
+                          </p>
+                          <a
+                            href="/"
+                            className="inline-block px-6 py-2.5 rounded-xl bg-pink-600 text-white font-bold text-xs"
+                          >
+                            Return Home
+                          </a>
+                        </div>
                       </div>
-                    </div>
+                    </UserThemeProvider>
                   }
                 />
               </Routes>
