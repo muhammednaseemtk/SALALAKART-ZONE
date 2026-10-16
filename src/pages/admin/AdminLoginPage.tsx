@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { BrandLogo } from '../../components/common/BrandLogo';
+import adminLightLogo from '../../assets/Artboard 9.png';
+import adminDarkLogo from '../../assets/Artboard 11.png';
 import { ThemeToggle } from '../../components/common/ThemeToggle';
 import {
   Lock,
@@ -27,6 +28,7 @@ export const AdminLoginPage: React.FC = () => {
     logout,
   } = useAuth();
   const { theme } = useTheme();
+  const logoSrc = theme === 'dark' ? adminDarkLogo : adminLightLogo;
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -120,8 +122,24 @@ export const AdminLoginPage: React.FC = () => {
       <div className="w-full max-w-md bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-3xl p-8 shadow-2xl text-white space-y-6">
         {/* Brand & Portal Header */}
         <div className="text-center space-y-3">
-          <div className="bg-white/95 dark:bg-black/50 p-3 rounded-2xl inline-block shadow-md border border-slate-200/80 dark:border-white/10">
-            <BrandLogo size="md" />
+          <div className="flex flex-col items-center gap-2">
+            <div className="bg-white/95 dark:bg-black/50 p-3.5 rounded-2xl inline-flex items-center justify-center shadow-md border border-slate-200/80 dark:border-white/10">
+              <Link
+                to="/"
+                className="inline-flex items-center justify-center hover:opacity-95 transition-opacity"
+                title="SALALAKART ZONE"
+              >
+                <img
+                  src={logoSrc}
+                  alt="SALALAKART ZONE"
+                  className="h-[52px] sm:h-[62px] w-auto max-w-full object-contain"
+                  loading="eager"
+                />
+              </Link>
+            </div>
+            <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded bg-[#8fe40f]/20 text-[#8fe40f] border border-[#8fe40f]/30 tracking-wider">
+              Admin
+            </span>
           </div>
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/30 text-[10px] font-extrabold uppercase tracking-wider">

@@ -1,6 +1,8 @@
 import React from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { BrandLogo } from '../common/BrandLogo';
+import adminLightLogo from '../../assets/Artboard 9.png';
+import adminDarkLogo from '../../assets/Artboard 11.png';
+import { useTheme } from '../../context/ThemeContext';
 import {
   LayoutDashboard,
   Package,
@@ -23,6 +25,9 @@ interface AdminSidebarProps {
 }
 
 export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) => {
+  const { theme } = useTheme();
+  const logoSrc = theme === 'dark' ? adminDarkLogo : adminLightLogo;
+
   const navItems = [
     { label: 'Dashboard', to: '/admin/dashboard', icon: LayoutDashboard },
     { label: 'Products', to: '/admin/products', icon: Package },
@@ -53,11 +58,22 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
         }`}
       >
         {/* Brand Header */}
-        <div className="p-5 border-b border-[#022920] dark:border-white/10 flex items-center justify-between">
-          <div className="bg-white/95 dark:bg-black/50 p-2 rounded-xl inline-block shadow-sm border border-slate-200/80 dark:border-white/10">
-            <BrandLogo size="sm" showTagline={false} />
+        <div className="p-5 border-b border-[#022920] dark:border-white/10 flex flex-col items-center justify-center text-center gap-2">
+          <div className="bg-white/95 dark:bg-black/50 p-2.5 rounded-2xl inline-flex items-center justify-center shadow-sm border border-slate-200/80 dark:border-white/10">
+            <Link
+              to="/admin/dashboard"
+              className="inline-flex items-center justify-center hover:opacity-95 transition-opacity"
+              title="SALALAKART ZONE Admin"
+            >
+              <img
+                src={logoSrc}
+                alt="SALALAKART ZONE"
+                className="h-11 sm:h-12 w-auto max-w-full object-contain"
+                loading="eager"
+              />
+            </Link>
           </div>
-          <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-[#8fe40f]/20 text-[#8fe40f] border border-[#8fe40f]/30">
+          <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded bg-[#8fe40f]/20 text-[#8fe40f] border border-[#8fe40f]/30 tracking-wider">
             Admin
           </span>
         </div>
