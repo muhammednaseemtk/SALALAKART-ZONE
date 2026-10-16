@@ -50,7 +50,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
       )}
 
       <aside
-        className={`fixed top-0 bottom-0 left-0 w-64 bg-[#033d2f] dark:bg-black text-slate-300 z-50 flex flex-col border-r border-[#022920] dark:border-white/10 transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 bottom-0 left-0 w-64 bg-[#033d2f] dark:bg-black text-white z-50 flex flex-col border-r border-[#022920] dark:border-white/10 transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
@@ -80,7 +80,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ isOpen, onClose }) =
                   `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                     isActive
                       ? 'bg-[#8fe40f] text-[#033d2f] font-bold shadow-md shadow-black/20'
-                      : 'text-slate-300 hover:text-white hover:bg-white/10'
+                      : 'text-white hover:text-white hover:bg-white/10'
                   }`
                 }
               >
