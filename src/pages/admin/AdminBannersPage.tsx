@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
 import { Banner } from '../../types';
-import { Image, Plus, Edit, Trash2, CheckCircle, X } from 'lucide-react';
+import { Image, Plus, Edit, Trash2, CheckCircle, X, AlertCircle } from 'lucide-react';
 
 export const AdminBannersPage: React.FC = () => {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
 
@@ -21,9 +22,16 @@ export const AdminBannersPage: React.FC = () => {
 
   const loadBanners = async () => {
     setLoading(true);
-    const data = await api.getBanners(true);
-    setBanners(data);
-    setLoading(false);
+    setFetchError(null);
+    try {
+      const data = await api.getBanners(true);
+      setBanners(data);
+    } catch (err: unknown) {
+      setFetchError(err instanceof Error ? err.message : 'Failed to load banners');
+      setBanners([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -34,10 +42,10 @@ export const AdminBannersPage: React.FC = () => {
     setEditingBanner(null);
     setTitle('');
     setSubtitle('');
-    setImageUrl('https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?auto=format&fit=crop&w=1200&q=80');
+    setImageUrl('');
     setButtonText('Shop Now');
     setLinkUrl('/shop');
-    setBadgeText('Special Promotion');
+    setBadgeText('');
     setDisplayOrder(banners.length + 1);
     setIsActive(true);
     setModalOpen(true);
@@ -110,56 +118,93 @@ export const AdminBannersPage: React.FC = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {banners.map((b) => (
-          <div
-            key={b.id}
-            className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col justify-between"
+      {loading ? (
+        <div className="py-16 text-center text-xs text-slate-400 bg-white rounded-3xl border border-slate-200/80">
+          Loading banners...
+        </div>
+      ) : fetchError ? (
+        <div className="py-16 text-center bg-white rounded-3xl border border-slate-200/80 p-8">
+          <AlertCircle className="w-10 h-10 text-rose-500 mx-auto mb-3" />
+          <p className="text-sm font-bold text-rose-700">Failed to load banners</p>
+          <p className="text-xs text-slate-500 mt-1">{fetchError}</p>
+          <button
+            onClick={loadBanners}
+            className="mt-4 px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition-colors"
           >
-            <div>
-              <div className="relative aspect-video w-full bg-slate-900">
-                <img src={b.image_url} alt="" className="w-full h-full object-cover opacity-80" />
-                <span className="absolute top-3 left-3 px-2 py-0.5 rounded-full bg-black/60 text-white text-[10px] font-bold backdrop-blur-xs">
-                  Order #{b.display_order}
-                </span>
-                <span
-                  className={`absolute top-3 right-3 px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
-                    b.is_active ? 'bg-emerald-500 text-white' : 'bg-slate-700 text-slate-300'
-                  }`}
-                >
-                  {b.is_active ? 'Live' : 'Hidden'}
-                </span>
-              </div>
-
-              <div className="p-5 space-y-2">
-                {b.badge_text && (
-                  <span className="text-[10px] font-bold text-pink-600 uppercase tracking-wider">
-                    {b.badge_text}
+            Retry
+          </button>
+        </div>
+      ) : banners.length === 0 ? (
+        <div className="py-16 text-center bg-white rounded-3xl border border-slate-200/80 p-8">
+          <Image className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+          <p className="text-sm font-bold text-slate-700">No banners found</p>
+          <p className="text-xs text-slate-400 mt-1">Create promotional banners to showcase on your storefront homepage.</p>
+          <button
+            onClick={openCreateModal}
+            className="mt-4 px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs inline-flex items-center gap-1.5 hover:bg-slate-800 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Create Banner</span>
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {banners.map((b) => (
+            <div
+              key={b.id}
+              className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col justify-between"
+            >
+              <div>
+                <div className="relative aspect-video w-full bg-slate-900">
+                  {b.image_url ? (
+                    <img src={b.image_url} alt="" className="w-full h-full object-cover opacity-80" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-slate-500 bg-slate-800">
+                      <Image className="w-8 h-8 opacity-40" />
+                    </div>
+                  )}
+                  <span className="absolute top-3 left-3 px-2 py-0.5 rounded-full bg-black/60 text-white text-[10px] font-bold backdrop-blur-xs">
+                    Order #{b.display_order}
                   </span>
-                )}
-                <h3 className="font-brand font-bold text-base text-slate-900">{b.title}</h3>
-                <p className="text-xs text-slate-500 line-clamp-2">{b.subtitle}</p>
-                <p className="text-[10px] text-slate-400 font-mono">Link: {b.link_url}</p>
+                  <span
+                    className={`absolute top-3 right-3 px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
+                      b.is_active ? 'bg-emerald-500 text-white' : 'bg-slate-700 text-slate-300'
+                    }`}
+                  >
+                    {b.is_active ? 'Live' : 'Hidden'}
+                  </span>
+                </div>
+
+                <div className="p-5 space-y-2">
+                  {b.badge_text && (
+                    <span className="text-[10px] font-bold text-pink-600 uppercase tracking-wider">
+                      {b.badge_text}
+                    </span>
+                  )}
+                  <h3 className="font-brand font-bold text-base text-slate-900">{b.title}</h3>
+                  <p className="text-xs text-slate-500 line-clamp-2">{b.subtitle}</p>
+                  <p className="text-[10px] text-slate-400 font-mono">Link: {b.link_url}</p>
+                </div>
+              </div>
+
+              <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
+                <button
+                  onClick={() => openEditModal(b)}
+                  className="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-100 transition-colors"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(b.id, b.title)}
+                  className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
               </div>
             </div>
-
-            <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2">
-              <button
-                onClick={() => openEditModal(b)}
-                className="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-100 transition-colors"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => handleDelete(b.id, b.title)}
-                className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 transition-colors"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Modal */}
       {modalOpen && (

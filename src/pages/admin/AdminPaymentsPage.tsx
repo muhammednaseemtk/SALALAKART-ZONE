@@ -7,14 +7,23 @@ import { formatPrice } from '../../utils/currency';
 export const AdminPaymentsPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function load() {
-      setLoading(true);
+  const load = async () => {
+    setLoading(true);
+    setError(null);
+    try {
       const ords = await api.getOrders();
       setOrders(ords);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to retrieve payment records');
+      setOrders([]);
+    } finally {
       setLoading(false);
     }
+  };
+
+  useEffect(() => {
     load();
   }, []);
 
@@ -72,6 +81,24 @@ export const AdminPaymentsPage: React.FC = () => {
 
         {loading ? (
           <div className="py-12 text-center text-xs text-slate-400">Loading ledger...</div>
+        ) : error ? (
+          <div className="py-12 text-center">
+            <AlertCircle className="w-10 h-10 text-rose-500 mx-auto mb-2" />
+            <p className="text-sm font-bold text-rose-700">Failed to load transactions</p>
+            <p className="text-xs text-slate-500 mt-1">{error}</p>
+            <button
+              onClick={load}
+              className="mt-4 px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        ) : orders.length === 0 ? (
+          <div className="py-12 text-center">
+            <CreditCard className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+            <p className="text-sm font-bold text-slate-700">No payment transactions found</p>
+            <p className="text-xs text-slate-400 mt-1">Transactions will appear here in real time as customer orders are placed.</p>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left">

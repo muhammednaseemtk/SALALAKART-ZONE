@@ -9,6 +9,7 @@ export const AdminCategoriesPage: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   // Form State
   const [name, setName] = useState('');
@@ -20,9 +21,16 @@ export const AdminCategoriesPage: React.FC = () => {
 
   const loadCategories = async () => {
     setLoading(true);
-    const cats = await api.getCategories();
-    setCategories(cats);
-    setLoading(false);
+    setFetchError(null);
+    try {
+      const cats = await api.getCategories();
+      setCategories(cats);
+    } catch (err: unknown) {
+      setFetchError(err instanceof Error ? err.message : 'Failed to load categories');
+      setCategories([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -34,7 +42,7 @@ export const AdminCategoriesPage: React.FC = () => {
     setName('');
     setSlug('');
     setDescription('');
-    setImageUrl('https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?auto=format&fit=crop&w=600&q=80');
+    setImageUrl('');
     setDisplayOrder(categories.length + 1);
     setIsActive(true);
     setErrorMsg(null);
@@ -138,6 +146,31 @@ export const AdminCategoriesPage: React.FC = () => {
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
         {loading ? (
           <div className="py-16 text-center text-xs text-slate-400">Loading categories...</div>
+        ) : fetchError ? (
+          <div className="py-16 text-center">
+            <AlertCircle className="w-10 h-10 text-rose-500 mx-auto mb-3" />
+            <p className="text-sm font-bold text-rose-700">Failed to load categories</p>
+            <p className="text-xs text-slate-500 mt-1">{fetchError}</p>
+            <button
+              onClick={loadCategories}
+              className="mt-4 px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        ) : categories.length === 0 ? (
+          <div className="py-16 text-center">
+            <Layers className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+            <p className="text-sm font-bold text-slate-700">No categories found</p>
+            <p className="text-xs text-slate-400 mt-1">Add your first product category to get started.</p>
+            <button
+              onClick={openCreateModal}
+              className="mt-4 px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs inline-flex items-center gap-1.5 hover:bg-slate-800 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Create Category</span>
+            </button>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left">
@@ -157,11 +190,17 @@ export const AdminCategoriesPage: React.FC = () => {
                     <td className="py-3 px-4 font-bold text-slate-400">#{cat.display_order}</td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
-                        <img
-                          src={cat.image_url}
-                          alt=""
-                          className="w-10 h-10 object-cover rounded-xl border border-slate-200 shrink-0"
-                        />
+                        {cat.image_url ? (
+                          <img
+                            src={cat.image_url}
+                            alt=""
+                            className="w-10 h-10 object-cover rounded-xl border border-slate-200 shrink-0"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-xl border border-slate-200 bg-slate-100 flex items-center justify-center text-slate-400 shrink-0">
+                            <Layers className="w-5 h-5" />
+                          </div>
+                        )}
                         <span className="font-bold text-slate-900">{cat.name}</span>
                       </div>
                     </td>

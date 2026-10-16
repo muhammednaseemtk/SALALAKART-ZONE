@@ -1,22 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
 import { Order, Product } from '../../types';
-import { BarChart3, Download, Calendar, ArrowUpRight, TrendingUp, IndianRupee } from 'lucide-react';
+import { BarChart3, Download, Calendar, ArrowUpRight, TrendingUp, IndianRupee, AlertCircle } from 'lucide-react';
 import { formatPrice } from '../../utils/currency';
 
 export const AdminReportsPage: React.FC = () => {
   const [stats, setStats] = useState<any>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function load() {
-      setLoading(true);
+  const load = async () => {
+    setLoading(true);
+    setError(null);
+    try {
       const [data, ords] = await Promise.all([api.getReports(), api.getOrders()]);
       setStats(data);
       setOrders(ords);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to compile reports');
+      setStats(null);
+      setOrders([]);
+    } finally {
       setLoading(false);
     }
+  };
+
+  useEffect(() => {
     load();
   }, []);
 
@@ -64,8 +74,26 @@ export const AdminReportsPage: React.FC = () => {
     document.body.removeChild(link);
   };
 
-  if (loading || !stats) {
+  if (loading) {
     return <div className="py-20 text-center text-xs text-slate-400">Compiling financial reports...</div>;
+  }
+
+  if (error || !stats) {
+    return (
+      <div className="py-16 text-center max-w-md mx-auto space-y-4">
+        <AlertCircle className="w-10 h-10 text-rose-500 mx-auto" />
+        <div>
+          <h2 className="font-brand font-bold text-lg text-slate-900">Failed to Compile Reports</h2>
+          <p className="text-xs text-slate-500 mt-1">{error || 'An unexpected error occurred while fetching reports.'}</p>
+        </div>
+        <button
+          onClick={load}
+          className="px-4 py-2 rounded-xl bg-purple-600 text-white font-bold text-xs hover:bg-purple-700 transition-colors"
+        >
+          Try Again
+        </button>
+      </div>
+    );
   }
 
   return (

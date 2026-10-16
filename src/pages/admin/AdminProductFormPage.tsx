@@ -38,24 +38,17 @@ export const AdminProductFormPage: React.FC = () => {
     price: 0,
     sale_price: '' as string | number,
     cost_price: 0,
-    stock_quantity: 10,
+    stock_quantity: 0,
     low_stock_threshold: 5,
-    brand: 'SpeedMaster',
+    brand: '',
     barcode: '',
-    weight: '0.5 kg',
-    dimensions: '20 x 15 x 8 cm',
+    weight: '',
+    dimensions: '',
     is_featured: false,
     is_active: true,
   });
 
-  const [images, setImages] = useState<ProductImage[]>([
-    {
-      id: 'img-1',
-      image_url: 'https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?auto=format&fit=crop&w=800&q=80',
-      display_order: 1,
-      is_primary: true,
-    },
-  ]);
+  const [images, setImages] = useState<ProductImage[]>([]);
 
   const [variants, setVariants] = useState<ProductVariant[]>([]);
 
@@ -84,7 +77,7 @@ export const AdminProductFormPage: React.FC = () => {
             cost_price: existing.cost_price || 0,
             stock_quantity: existing.stock_quantity,
             low_stock_threshold: existing.low_stock_threshold || 5,
-            brand: existing.brand || 'SpeedMaster',
+            brand: existing.brand || '',
             barcode: existing.barcode || '',
             weight: existing.weight || '',
             dimensions: existing.dimensions || '',
@@ -127,7 +120,7 @@ export const AdminProductFormPage: React.FC = () => {
       ...prev,
       {
         id: `img-${Date.now()}`,
-        image_url: 'https://images.unsplash.com/photo-1587654780291-39c9404d746b?auto=format&fit=crop&w=800&q=80',
+        image_url: '',
         display_order: prev.length + 1,
         is_primary: prev.length === 0,
       },
@@ -143,12 +136,12 @@ export const AdminProductFormPage: React.FC = () => {
       ...prev,
       {
         id: `var-${Date.now()}`,
-        name: 'Color',
+        name: '',
         variant_type: 'color',
-        value: 'Standard',
-        sku: `${formData.sku}-V${prev.length + 1}`,
+        value: '',
+        sku: formData.sku ? `${formData.sku}-V${prev.length + 1}` : '',
         price_adjustment: 0,
-        stock_quantity: 10,
+        stock_quantity: 0,
       },
     ]);
   };
@@ -185,8 +178,8 @@ export const AdminProductFormPage: React.FC = () => {
       cost_price: numCostPrice,
       stock_quantity: Math.max(0, Number(formData.stock_quantity)),
       low_stock_threshold: Math.max(0, Number(formData.low_stock_threshold)),
-      category_name: selectedCat?.name || 'Toys',
-      category_slug: selectedCat?.slug || 'toys',
+      category_name: selectedCat?.name || '',
+      category_slug: selectedCat?.slug || '',
       images,
       variants,
     };
@@ -305,7 +298,7 @@ export const AdminProductFormPage: React.FC = () => {
                 value={formData.brand}
                 onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
                 className="w-full text-xs p-3 rounded-xl border border-slate-200 focus:outline-pink-500 bg-slate-50/50"
-                placeholder="SpeedMaster"
+                placeholder="Brand name"
               />
             </div>
 
@@ -316,7 +309,7 @@ export const AdminProductFormPage: React.FC = () => {
                 value={formData.barcode}
                 onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
                 className="w-full text-xs p-3 rounded-xl border border-slate-200 focus:outline-pink-500 bg-slate-50/50 font-mono"
-                placeholder="8901234567890"
+                placeholder="Optional barcode / UPC"
               />
             </div>
 
@@ -327,7 +320,7 @@ export const AdminProductFormPage: React.FC = () => {
                 value={formData.weight}
                 onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
                 className="w-full text-xs p-3 rounded-xl border border-slate-200 focus:outline-pink-500 bg-slate-50/50"
-                placeholder="0.85 kg"
+                placeholder="e.g. 0.5 kg"
               />
             </div>
 
@@ -487,65 +480,84 @@ export const AdminProductFormPage: React.FC = () => {
           </div>
 
           <div className="space-y-3">
-            {images.map((img, idx) => (
-              <div key={img.id} className="flex flex-col sm:flex-row gap-3 items-start sm:items-center p-3 rounded-2xl bg-slate-50 border border-slate-200">
-                <img
-                  src={img.image_url}
-                  alt=""
-                  className="w-14 h-14 object-cover rounded-xl border border-slate-200 shrink-0 bg-white"
-                />
-                <input
-                  type="text"
-                  required
-                  value={img.image_url}
-                  onChange={(e) => {
-                    const next = [...images];
-                    next[idx].image_url = e.target.value;
-                    setImages(next);
-                  }}
-                  className="flex-1 text-xs p-2.5 rounded-xl border border-slate-200 bg-white w-full"
-                  placeholder="https://... or click Upload File"
-                />
-                <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-                  <label className="px-3 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold text-xs flex items-center gap-1.5 cursor-pointer shrink-0 transition-colors">
-                    {uploadingIndex === idx ? (
-                      <Loader2 className="w-4 h-4 animate-spin text-purple-600" />
-                    ) : (
-                      <Upload className="w-4 h-4 text-purple-600" />
-                    )}
-                    <span>{uploadingIndex === idx ? 'Uploading...' : 'Upload File'}</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      disabled={uploadingIndex === idx}
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        setUploadingIndex(idx);
-                        const { url, error } = await uploadProductImage(file);
-                        setUploadingIndex(null);
-                        if (url) {
-                          const next = [...images];
-                          next[idx].image_url = url;
-                          setImages(next);
-                        } else if (error) {
-                          alert(`Image upload failed: ${error}`);
-                        }
-                      }}
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveImage(img.id)}
-                    disabled={images.length === 1}
-                    className="p-2 text-slate-400 hover:text-rose-600 disabled:opacity-30 cursor-pointer"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+            {images.length === 0 ? (
+              <div className="text-center py-6 border border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
+                <p className="text-xs text-slate-500 mb-2">No product images added yet.</p>
+                <button
+                  type="button"
+                  onClick={handleAddImage}
+                  className="px-3 py-1.5 rounded-xl bg-purple-50 text-purple-700 font-bold text-xs inline-flex items-center gap-1 hover:bg-purple-100"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add First Image</span>
+                </button>
               </div>
-            ))}
+            ) : (
+              images.map((img, idx) => (
+                <div key={img.id} className="flex flex-col sm:flex-row gap-3 items-start sm:items-center p-3 rounded-2xl bg-slate-50 border border-slate-200">
+                  {img.image_url ? (
+                    <img
+                      src={img.image_url}
+                      alt=""
+                      className="w-14 h-14 object-cover rounded-xl border border-slate-200 shrink-0 bg-white"
+                    />
+                  ) : (
+                    <div className="w-14 h-14 rounded-xl border border-dashed border-slate-300 flex items-center justify-center text-slate-400 shrink-0 bg-white">
+                      <ImageIcon className="w-5 h-5" />
+                    </div>
+                  )}
+                  <input
+                    type="text"
+                    required
+                    value={img.image_url}
+                    onChange={(e) => {
+                      const next = [...images];
+                      next[idx].image_url = e.target.value;
+                      setImages(next);
+                    }}
+                    className="flex-1 text-xs p-2.5 rounded-xl border border-slate-200 bg-white w-full"
+                    placeholder="https://... or click Upload File"
+                  />
+                  <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                    <label className="px-3 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold text-xs flex items-center gap-1.5 cursor-pointer shrink-0 transition-colors">
+                      {uploadingIndex === idx ? (
+                        <Loader2 className="w-4 h-4 animate-spin text-purple-600" />
+                      ) : (
+                        <Upload className="w-4 h-4 text-purple-600" />
+                      )}
+                      <span>{uploadingIndex === idx ? 'Uploading...' : 'Upload File'}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={uploadingIndex === idx}
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          setUploadingIndex(idx);
+                          const { url, error } = await uploadProductImage(file);
+                          setUploadingIndex(null);
+                          if (url) {
+                            const next = [...images];
+                            next[idx].image_url = url;
+                            setImages(next);
+                          } else if (error) {
+                            alert(`Image upload failed: ${error}`);
+                          }
+                        }}
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(img.id)}
+                      className="p-2 text-slate-400 hover:text-rose-600 cursor-pointer"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 

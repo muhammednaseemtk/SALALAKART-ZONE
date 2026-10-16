@@ -7,23 +7,31 @@ import { formatPrice } from '../../utils/currency';
 export const AdminCouponsPage: React.FC = () => {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
 
   // Form State
   const [code, setCode] = useState('');
   const [discountType, setDiscountType] = useState<'percentage' | 'fixed'>('percentage');
-  const [discountValue, setDiscountValue] = useState(10);
-  const [minOrderAmount, setMinOrderAmount] = useState(25);
-  const [maxDiscountAmount, setMaxDiscountAmount] = useState<string | number>(20);
+  const [discountValue, setDiscountValue] = useState(0);
+  const [minOrderAmount, setMinOrderAmount] = useState(0);
+  const [maxDiscountAmount, setMaxDiscountAmount] = useState<string | number>('');
   const [usageLimit, setUsageLimit] = useState(100);
   const [isActive, setIsActive] = useState(true);
 
   const loadCoupons = async () => {
     setLoading(true);
-    const data = await api.getCoupons(true);
-    setCoupons(data);
-    setLoading(false);
+    setError(null);
+    try {
+      const data = await api.getCoupons(true);
+      setCoupons(data);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load coupons');
+      setCoupons([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -34,10 +42,10 @@ export const AdminCouponsPage: React.FC = () => {
     setEditingCoupon(null);
     setCode('');
     setDiscountType('percentage');
-    setDiscountValue(10);
-    setMinOrderAmount(25);
-    setMaxDiscountAmount(20);
-    setUsageLimit(500);
+    setDiscountValue(0);
+    setMinOrderAmount(0);
+    setMaxDiscountAmount('');
+    setUsageLimit(100);
     setIsActive(true);
     setModalOpen(true);
   };
@@ -114,6 +122,31 @@ export const AdminCouponsPage: React.FC = () => {
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
         {loading ? (
           <div className="py-16 text-center text-xs text-slate-400">Loading coupons...</div>
+        ) : error ? (
+          <div className="py-16 text-center p-8">
+            <AlertCircle className="w-10 h-10 text-rose-500 mx-auto mb-3" />
+            <p className="text-sm font-bold text-rose-700">Failed to load coupons</p>
+            <p className="text-xs text-slate-500 mt-1">{error}</p>
+            <button
+              onClick={loadCoupons}
+              className="mt-4 px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        ) : coupons.length === 0 ? (
+          <div className="py-16 text-center p-8">
+            <Ticket className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+            <p className="text-sm font-bold text-slate-700">No coupons found</p>
+            <p className="text-xs text-slate-400 mt-1">Create promotional discount codes for your customers.</p>
+            <button
+              onClick={openCreateModal}
+              className="mt-4 px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs inline-flex items-center gap-1.5 hover:bg-slate-800 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Create Coupon</span>
+            </button>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left">

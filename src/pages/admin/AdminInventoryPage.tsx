@@ -8,6 +8,7 @@ export const AdminInventoryPage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [movements, setMovements] = useState<InventoryMovement[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Adjustment modal
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -19,13 +20,21 @@ export const AdminInventoryPage: React.FC = () => {
 
   const loadData = async () => {
     setLoading(true);
-    const [prods, moves] = await Promise.all([
-      api.getProducts({ includeInactive: true }),
-      api.getInventoryMovements(),
-    ]);
-    setProducts(prods);
-    setMovements(moves);
-    setLoading(false);
+    setError(null);
+    try {
+      const [prods, moves] = await Promise.all([
+        api.getProducts({ includeInactive: true }),
+        api.getInventoryMovements(),
+      ]);
+      setProducts(prods);
+      setMovements(moves);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to retrieve inventory data');
+      setProducts([]);
+      setMovements([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -143,7 +152,7 @@ export const AdminInventoryPage: React.FC = () => {
             <tbody className="divide-y divide-slate-100">
               {products.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-slate-400 text-xs">
+                  <td colSpan={8} className="py-8 text-center text-slate-400 text-xs">
                     No products in catalog to manage inventory. Add products first.
                   </td>
                 </tr>
@@ -213,28 +222,36 @@ export const AdminInventoryPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {movements.map((m) => (
-                <tr key={m.id} className="hover:bg-slate-50/60">
-                  <td className="py-3 px-3 text-slate-500">
-                    {new Date(m.created_at).toLocaleString()}
+              {movements.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-slate-400 text-xs">
+                    No inventory movements recorded yet. Movements are logged when stock is updated or orders are processed.
                   </td>
-                  <td className="py-3 px-3 font-semibold text-slate-800">{m.product_name}</td>
-                  <td className="py-3 px-3">
-                    <span className="uppercase font-bold text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-700">
-                      {m.change_type.replace('_', ' ')}
-                    </span>
-                  </td>
-                  <td className="py-3 px-3 font-bold">
-                    <span className={m.quantity_change > 0 ? 'text-emerald-600' : 'text-rose-600'}>
-                      {m.quantity_change > 0 ? `+${m.quantity_change}` : m.quantity_change}
-                    </span>
-                  </td>
-                  <td className="py-3 px-3 font-mono text-slate-600">
-                    {m.previous_stock} → {m.new_stock}
-                  </td>
-                  <td className="py-3 px-3 text-slate-500 italic">{m.notes}</td>
                 </tr>
-              ))}
+              ) : (
+                movements.map((m) => (
+                  <tr key={m.id} className="hover:bg-slate-50/60">
+                    <td className="py-3 px-3 text-slate-500">
+                      {new Date(m.created_at).toLocaleString()}
+                    </td>
+                    <td className="py-3 px-3 font-semibold text-slate-800">{m.product_name}</td>
+                    <td className="py-3 px-3">
+                      <span className="uppercase font-bold text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-700">
+                        {m.change_type.replace('_', ' ')}
+                      </span>
+                    </td>
+                    <td className="py-3 px-3 font-bold">
+                      <span className={m.quantity_change > 0 ? 'text-emerald-600' : 'text-rose-600'}>
+                        {m.quantity_change > 0 ? `+${m.quantity_change}` : m.quantity_change}
+                      </span>
+                    </td>
+                    <td className="py-3 px-3 font-mono text-slate-600">
+                      {m.previous_stock} → {m.new_stock}
+                    </td>
+                    <td className="py-3 px-3 text-slate-500 italic">{m.notes}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

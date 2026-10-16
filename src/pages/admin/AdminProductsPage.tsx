@@ -23,16 +23,25 @@ export const AdminProductsPage: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const loadData = async () => {
     setLoading(true);
-    const [prods, cats] = await Promise.all([
-      api.getProducts({ includeInactive: true }),
-      api.getCategories(),
-    ]);
-    setProducts(prods);
-    setCategories(cats);
-    setLoading(false);
+    setError(null);
+    try {
+      const [prods, cats] = await Promise.all([
+        api.getProducts({ includeInactive: true }),
+        api.getCategories(),
+      ]);
+      setProducts(prods);
+      setCategories(cats);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to retrieve product catalog');
+      setProducts([]);
+      setCategories([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -158,6 +167,18 @@ export const AdminProductsPage: React.FC = () => {
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
         {loading ? (
           <div className="py-16 text-center text-xs text-slate-400">Loading products...</div>
+        ) : error ? (
+          <div className="py-16 text-center p-8">
+            <AlertCircle className="w-10 h-10 text-rose-500 mx-auto mb-3" />
+            <p className="text-sm font-bold text-rose-700">Failed to load products</p>
+            <p className="text-xs text-slate-500 mt-1">{error}</p>
+            <button
+              onClick={loadData}
+              className="mt-4 px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition-colors"
+            >
+              Retry
+            </button>
+          </div>
         ) : products.length === 0 ? (
           <div className="py-20 text-center max-w-md mx-auto px-4">
             <div className="w-16 h-16 rounded-3xl bg-pink-50 text-pink-600 flex items-center justify-center mx-auto mb-4 border border-pink-100 shadow-sm">
@@ -165,7 +186,7 @@ export const AdminProductsPage: React.FC = () => {
             </div>
             <h3 className="font-brand font-black text-lg text-slate-800">Your Catalog is Empty</h3>
             <p className="text-xs text-slate-500 mt-2 mb-6 leading-relaxed">
-              All demo items have been completely removed. Click the button below to add your first real product. Any product you add here will immediately appear on the storefront.
+              No products found in the catalog. Click the button below to add your first real product. Any product you add here will immediately appear on the storefront.
             </p>
             <Link
               to="/admin/products/add"
@@ -198,11 +219,17 @@ export const AdminProductsPage: React.FC = () => {
                   <tr key={prod.id} className="hover:bg-slate-50/60 transition-colors">
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
-                        <img
-                          src={prod.images[0]?.image_url}
-                          alt=""
-                          className="w-12 h-12 object-cover rounded-xl border border-slate-200 shrink-0"
-                        />
+                        {prod.images?.[0]?.image_url ? (
+                          <img
+                            src={prod.images[0].image_url}
+                            alt=""
+                            className="w-12 h-12 object-cover rounded-xl border border-slate-200 shrink-0"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded-xl border border-slate-200 bg-slate-100 flex items-center justify-center text-slate-400 shrink-0">
+                            <Package className="w-5 h-5" />
+                          </div>
+                        )}
                         <div className="truncate max-w-xs">
                           <p className="font-bold text-slate-900 truncate">{prod.name}</p>
                           <p className="text-[10px] text-slate-400 font-mono">SKU: {prod.sku}</p>

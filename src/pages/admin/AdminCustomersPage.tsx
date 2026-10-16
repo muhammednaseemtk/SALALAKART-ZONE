@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
 import { UserProfile, Order } from '../../types';
-import { Users, Search, ShoppingBag, Phone, Mail, ShieldCheck } from 'lucide-react';
+import { Users, Search, ShoppingBag, Phone, Mail, ShieldCheck, AlertCircle } from 'lucide-react';
 import { formatPrice } from '../../utils/currency';
 
 export const AdminCustomersPage: React.FC = () => {
@@ -9,15 +9,25 @@ export const AdminCustomersPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function load() {
-      setLoading(true);
+  const load = async () => {
+    setLoading(true);
+    setError(null);
+    try {
       const [custs, ords] = await Promise.all([api.getCustomers(), api.getOrders()]);
       setCustomers(custs);
       setOrders(ords);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to retrieve customer accounts');
+      setCustomers([]);
+      setOrders([]);
+    } finally {
       setLoading(false);
     }
+  };
+
+  useEffect(() => {
     load();
   }, []);
 
@@ -64,8 +74,28 @@ export const AdminCustomersPage: React.FC = () => {
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
         {loading ? (
           <div className="py-16 text-center text-xs text-slate-400">Loading customer records...</div>
+        ) : error ? (
+          <div className="py-16 text-center p-8">
+            <AlertCircle className="w-10 h-10 text-rose-500 mx-auto mb-3" />
+            <p className="text-sm font-bold text-rose-700">Failed to load customers</p>
+            <p className="text-xs text-slate-500 mt-1">{error}</p>
+            <button
+              onClick={load}
+              className="mt-4 px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition-colors"
+            >
+              Retry
+            </button>
+          </div>
         ) : filtered.length === 0 ? (
-          <div className="py-16 text-center text-xs text-slate-400">No customers found.</div>
+          <div className="py-16 text-center p-8">
+            <Users className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+            <p className="text-sm font-bold text-slate-700">
+              {search ? 'No customers match your search' : 'No customers found'}
+            </p>
+            <p className="text-xs text-slate-400 mt-1">
+              {search ? 'Try searching by a different name, email or phone number.' : 'Customer accounts will appear here as users register on your store.'}
+            </p>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left">

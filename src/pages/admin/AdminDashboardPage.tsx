@@ -188,8 +188,8 @@ export const AdminDashboardPage: React.FC = () => {
 
           <div className="h-48 flex items-end justify-between gap-3 pt-6 px-2">
             {stats.last7Days.map((d: any, idx: number) => {
-              const maxSale = Math.max(...stats.last7Days.map((x: any) => x.sales), 100);
-              const heightPct = Math.max(12, Math.round((d.sales / maxSale) * 100));
+              const maxSale = Math.max(...stats.last7Days.map((x: any) => x.sales), 1);
+              const heightPct = d.sales > 0 ? Math.max(8, Math.round((d.sales / maxSale) * 100)) : 0;
 
               return (
                 <div key={idx} className="flex-1 flex flex-col items-center gap-2 group">
@@ -262,68 +262,76 @@ export const AdminDashboardPage: React.FC = () => {
           </Link>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs text-left">
-            <thead className="border-b border-slate-100 text-slate-400 uppercase text-[10px] tracking-wider">
-              <tr>
-                <th className="py-3 px-2">Order #</th>
-                <th className="py-3 px-2">Customer</th>
-                <th className="py-3 px-2">Date</th>
-                <th className="py-3 px-2">Total</th>
-                <th className="py-3 px-2">Payment</th>
-                <th className="py-3 px-2">Status</th>
-                <th className="py-3 px-2 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {stats.recentOrders.map((ord: Order) => (
-                <tr key={ord.id} className="hover:bg-slate-50/60 transition-colors">
-                  <td className="py-3.5 px-2 font-mono font-bold text-slate-900">
-                    {ord.order_number}
-                  </td>
-                  <td className="py-3.5 px-2">
-                    <p className="font-bold text-slate-800">{ord.customer_name}</p>
-                    <p className="text-[10px] text-slate-400">{ord.customer_phone}</p>
-                  </td>
-                  <td className="py-3.5 px-2 text-slate-500">
-                    {new Date(ord.created_at).toLocaleDateString()}
-                  </td>
-                  <td className="py-3.5 px-2 font-bold text-slate-900">
-                    {formatPrice(ord.total_amount)}
-                  </td>
-                  <td className="py-3.5 px-2">
-                    <span className="uppercase font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded text-[10px]">
-                      {ord.payment_method}
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-2">
-                    <span
-                      className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide ${
-                        ord.order_status === 'delivered'
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : ord.order_status === 'shipped'
-                          ? 'bg-blue-100 text-blue-800'
-                          : ord.order_status === 'cancelled'
-                          ? 'bg-rose-100 text-rose-800'
-                          : 'bg-amber-100 text-amber-800'
-                      }`}
-                    >
-                      {ord.order_status.replace('_', ' ')}
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-2 text-right">
-                    <Link
-                      to={`/admin/orders/${ord.id}`}
-                      className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-pink-50 hover:text-pink-600 font-bold text-[11px] transition-colors"
-                    >
-                      Manage
-                    </Link>
-                  </td>
+        {stats.recentOrders.length === 0 ? (
+          <div className="py-12 text-center">
+            <ShoppingBag className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+            <p className="text-sm font-bold text-slate-700">No orders yet</p>
+            <p className="text-xs text-slate-400 mt-1">Customer orders will appear here in real time as they are placed.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs text-left">
+              <thead className="border-b border-slate-100 text-slate-400 uppercase text-[10px] tracking-wider">
+                <tr>
+                  <th className="py-3 px-2">Order #</th>
+                  <th className="py-3 px-2">Customer</th>
+                  <th className="py-3 px-2">Date</th>
+                  <th className="py-3 px-2">Total</th>
+                  <th className="py-3 px-2">Payment</th>
+                  <th className="py-3 px-2">Status</th>
+                  <th className="py-3 px-2 text-right">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {stats.recentOrders.map((ord: Order) => (
+                  <tr key={ord.id} className="hover:bg-slate-50/60 transition-colors">
+                    <td className="py-3.5 px-2 font-mono font-bold text-slate-900">
+                      {ord.order_number}
+                    </td>
+                    <td className="py-3.5 px-2">
+                      <p className="font-bold text-slate-800">{ord.customer_name}</p>
+                      <p className="text-[10px] text-slate-400">{ord.customer_phone}</p>
+                    </td>
+                    <td className="py-3.5 px-2 text-slate-500">
+                      {new Date(ord.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="py-3.5 px-2 font-bold text-slate-900">
+                      {formatPrice(ord.total_amount)}
+                    </td>
+                    <td className="py-3.5 px-2">
+                      <span className="uppercase font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded text-[10px]">
+                        {ord.payment_method}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-2">
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide ${
+                          ord.order_status === 'delivered'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : ord.order_status === 'shipped'
+                            ? 'bg-blue-100 text-blue-800'
+                            : ord.order_status === 'cancelled'
+                            ? 'bg-rose-100 text-rose-800'
+                            : 'bg-amber-100 text-amber-800'
+                        }`}
+                      >
+                        {ord.order_status.replace('_', ' ')}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-2 text-right">
+                      <Link
+                        to={`/admin/orders/${ord.id}`}
+                        className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-pink-50 hover:text-pink-600 font-bold text-[11px] transition-colors"
+                      >
+                        Manage
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

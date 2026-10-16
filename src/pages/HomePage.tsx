@@ -124,39 +124,6 @@ export const HomePage: React.FC = () => {
         )}
       </section>
 
-      {/* 4. Promotional Highlights Banner */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-14">
-        <div className="relative rounded-3xl bg-gradient-to-r from-purple-700 via-pink-600 to-amber-500 p-8 sm:p-12 text-white overflow-hidden shadow-xl">
-          <div className="relative z-10 max-w-xl space-y-4">
-            <span className="px-3.5 py-1.5 rounded-full bg-white/20 backdrop-blur-md text-xs font-extrabold uppercase tracking-wider">
-              Special Weekend Deals
-            </span>
-            <h2 className="font-brand font-black text-3xl sm:text-4xl leading-tight">
-              Instant 10% Discount with Code <span className="underline decoration-yellow-300">WELCOME10</span>
-            </h2>
-            <p className="text-sm text-pink-100 leading-relaxed">
-              From birthdays to surprise celebrations, bring home smiles with premium gifts,
-              watches and interactive toys. Free doorstep shipping on orders above ₹75!
-            </p>
-            <div className="pt-2">
-              <Link
-                to="/shop"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-white text-slate-900 font-extrabold text-sm hover:bg-yellow-300 transition-all shadow-lg"
-              >
-                <span>Shop Deals Now</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </div>
-          <div className="absolute right-0 bottom-0 top-0 w-1/2 opacity-20 pointer-events-none hidden md:block">
-            <img
-              src="https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?auto=format&fit=crop&w=800&q=80"
-              alt="Promo toys"
-              className="w-full h-full object-cover"
-            />
-          </div>
-        </div>
-      </section>
 
       {/* 5. Watches & Smart Gadgets Section (only shown if gadgets exist) */}
       {watchGadgetProducts.length > 0 && (

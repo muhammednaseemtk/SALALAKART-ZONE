@@ -2,12 +2,7 @@ import { supabase, isSupabaseConfigured } from './supabase';
 import { isFirebaseConfigured } from '../lib/firebase';
 import { firebaseService } from './firebaseService';
 import {
-  INITIAL_CATEGORIES,
-  INITIAL_PRODUCTS,
-  INITIAL_BANNERS,
-  INITIAL_COUPONS,
   INITIAL_SHIPPING_METHODS,
-  INITIAL_REVIEWS,
   DEFAULT_STORE_SETTINGS,
 } from './mockData';
 import {
@@ -40,12 +35,44 @@ const STORAGE_KEYS = {
   PAYMENTS: 'salalakart_payments',
 };
 
+// Purge any legacy dummy mock records previously cached in localStorage
+function purgeLegacyMockData(): void {
+  try {
+    const keys = [
+      STORAGE_KEYS.PRODUCTS,
+      STORAGE_KEYS.CATEGORIES,
+      STORAGE_KEYS.BANNERS,
+      STORAGE_KEYS.COUPONS,
+      STORAGE_KEYS.ORDERS,
+      STORAGE_KEYS.REVIEWS,
+      STORAGE_KEYS.CUSTOMERS,
+      STORAGE_KEYS.INVENTORY,
+      STORAGE_KEYS.PAYMENTS,
+    ];
+    for (const key of keys) {
+      const raw = localStorage.getItem(key);
+      if (
+        raw &&
+        (raw.includes('SZ-90214') ||
+          raw.includes('amina.harthy') ||
+          raw.includes('cat-toys') ||
+          raw.includes('SpeedMaster') ||
+          raw.includes('KidiGlow'))
+      ) {
+        localStorage.removeItem(key);
+      }
+    }
+  } catch {
+    // Ignore storage access errors
+  }
+}
+purgeLegacyMockData();
+
 // Helper to get / set from localStorage
 function getStored<T>(key: string, defaultVal: T): T {
   try {
     const raw = localStorage.getItem(key);
     if (!raw) {
-      localStorage.setItem(key, JSON.stringify(defaultVal));
       return defaultVal;
     }
     return JSON.parse(raw);
@@ -65,106 +92,13 @@ function setStored<T>(key: string, val: T): void {
 function getStoredProducts(): Product[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
-    if (!raw) return INITIAL_PRODUCTS;
-    const list: Product[] = JSON.parse(raw);
-    return list.length > 0 ? list : INITIAL_PRODUCTS;
+    if (!raw) return [];
+    const list = JSON.parse(raw);
+    return Array.isArray(list) ? list : [];
   } catch {
-    return INITIAL_PRODUCTS;
+    return [];
   }
 }
-
-// Initial customers seed for local storage mode
-const INITIAL_CUSTOMERS: UserProfile[] = [
-  {
-    id: 'cust-1',
-    email: 'amina.harthy@example.com',
-    full_name: 'Amina Al-Harthy',
-    phone: '+968 9123 4455',
-    role: 'customer',
-    created_at: new Date(Date.now() - 30 * 86400000).toISOString(),
-  },
-  {
-    id: 'cust-2',
-    email: 'rohan.sharma@example.com',
-    full_name: 'Rohan Sharma',
-    phone: '+968 9876 5432',
-    role: 'customer',
-    created_at: new Date(Date.now() - 20 * 86400000).toISOString(),
-  },
-  {
-    id: 'cust-3',
-    email: 'sarah.j@example.com',
-    full_name: 'Sarah Jenkins',
-    phone: '+968 9555 1234',
-    role: 'customer',
-    created_at: new Date(Date.now() - 10 * 86400000).toISOString(),
-  },
-];
-
-// Initial mock orders to power reports and dashboard when offline
-const INITIAL_ORDERS: Order[] = [
-  {
-    id: 'ord-1001',
-    order_number: 'SZ-90214',
-    user_id: 'cust-1',
-    customer_name: 'Amina Al-Harthy',
-    customer_email: 'amina.harthy@example.com',
-    customer_phone: '+968 9123 4455',
-    shipping_address: {
-      id: 'addr-1',
-      recipient_name: 'Amina Al-Harthy',
-      phone: '+968 9123 4455',
-      street: 'Villa 14, Al-Saada North',
-      landmark: 'Near Sultan Qaboos Hospital',
-      city: 'Salalah',
-      state: 'Dhofar',
-      postal_code: '211',
-      country: 'Oman',
-      is_default: true,
-    },
-    shipping_method_id: 'ship-std',
-    shipping_method_name: 'Standard Doorstep Delivery',
-    payment_method: 'cod',
-    payment_status: 'paid',
-    order_status: 'delivered',
-    tracking_number: 'OM-EXP-882190',
-    courier_name: 'Oman Post Express',
-    subtotal: 79.99,
-    discount_amount: 8.0,
-    coupon_code: 'WELCOME10',
-    shipping_fee: 4.99,
-    tax_amount: 3.85,
-    total_amount: 80.83,
-    items: [
-      {
-        id: 'ord-item-1',
-        product_id: 'prod-2',
-        product_name: 'KidiGlow 4G GPS Smart Watch for Kids',
-        sku: 'SKU-WAT-002',
-        price: 79.99,
-        quantity: 1,
-        total_price: 79.99,
-        image_url:
-          'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&w=800&q=80',
-        variant_details: 'Color: Cotton Candy Pink',
-      },
-    ],
-    status_history: [
-      {
-        status: 'pending',
-        notes: 'Order placed by customer',
-        created_at: new Date(Date.now() - 4 * 86400000).toISOString(),
-      },
-      {
-        status: 'delivered',
-        notes: 'Successfully delivered to customer',
-        created_at: new Date(Date.now() - 1 * 86400000).toISOString(),
-      },
-    ],
-    created_at: new Date(Date.now() - 4 * 86400000).toISOString(),
-    updated_at: new Date(Date.now() - 1 * 86400000).toISOString(),
-  },
-];
 
 export const api = {
   // ----------------------------------------------------
@@ -172,39 +106,40 @@ export const api = {
   // ----------------------------------------------------
   async getCategories(): Promise<Category[]> {
     if (isFirebaseConfigured) {
-      const fbCats = await firebaseService.getCategories();
-      if (fbCats && fbCats.length > 0) return fbCats;
+      try {
+        return await firebaseService.getCategories();
+      } catch (err) {
+        console.error('Firebase getCategories error:', err);
+        throw err;
+      }
     }
 
     if (isSupabaseConfigured) {
-      try {
-        const { data, error } = await supabase
-          .from('categories')
-          .select('*, products:products(count)')
-          .order('display_order', { ascending: true });
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*, products:products(count)')
+        .order('display_order', { ascending: true });
 
-        if (!error && data) {
-          return data.map((cat: any) => ({
-            id: cat.id,
-            name: cat.name,
-            slug: cat.slug,
-            description: cat.description || '',
-            image_url: cat.image_url,
-            parent_id: cat.parent_id,
-            display_order: cat.display_order,
-            is_active: cat.is_active,
-            product_count: cat.products?.[0]?.count || 0,
-            created_at: cat.created_at,
-          }));
-        }
-        if (error) {
-          console.warn('Supabase getCategories error, falling back:', error.message);
-        }
-      } catch (err) {
-        console.warn('Supabase getCategories exception:', err);
+      if (error) {
+        console.error('Supabase getCategories error:', error.message);
+        throw new Error(error.message);
       }
+
+      return (data || []).map((cat: any) => ({
+        id: cat.id,
+        name: cat.name,
+        slug: cat.slug,
+        description: cat.description || '',
+        image_url: cat.image_url,
+        parent_id: cat.parent_id,
+        display_order: cat.display_order,
+        is_active: cat.is_active,
+        product_count: cat.products?.[0]?.count || 0,
+        created_at: cat.created_at,
+      }));
     }
-    return getStored<Category[]>(STORAGE_KEYS.CATEGORIES, INITIAL_CATEGORIES);
+
+    return getStored<Category[]>(STORAGE_KEYS.CATEGORIES, []);
   },
 
   async getCategoryBySlug(slug: string): Promise<Category | null> {
@@ -238,9 +173,10 @@ export const api = {
           .single();
 
         if (!error && data) return data;
-        if (error) console.error('Supabase createCategory error:', error.message);
+        if (error) throw new Error(error.message);
       } catch (err) {
         console.error('Supabase createCategory error:', err);
+        throw err;
       }
     }
 
@@ -249,7 +185,7 @@ export const api = {
       id: `cat-${Date.now()}`,
       created_at: new Date().toISOString(),
     };
-    const current = getStored<Category[]>(STORAGE_KEYS.CATEGORIES, INITIAL_CATEGORIES);
+    const current = getStored<Category[]>(STORAGE_KEYS.CATEGORIES, []);
     current.push(newCat);
     setStored(STORAGE_KEYS.CATEGORIES, current);
     return newCat;
@@ -266,13 +202,14 @@ export const api = {
           .single();
 
         if (!error && data) return data;
-        if (error) console.error('Supabase updateCategory error:', error.message);
+        if (error) throw new Error(error.message);
       } catch (err) {
         console.error('Supabase updateCategory error:', err);
+        throw err;
       }
     }
 
-    const current = getStored<Category[]>(STORAGE_KEYS.CATEGORIES, INITIAL_CATEGORIES);
+    const current = getStored<Category[]>(STORAGE_KEYS.CATEGORIES, []);
     const index = current.findIndex((c) => c.id === id);
     if (index === -1) throw new Error('Category not found');
     current[index] = { ...current[index], ...updates };
@@ -291,16 +228,15 @@ export const api = {
     }
 
     if (isSupabaseConfigured) {
-      try {
-        const { error } = await supabase.from('categories').delete().eq('id', id);
-        if (!error) return true;
-        if (error) console.error('Supabase deleteCategory error:', error.message);
-      } catch (err) {
-        console.error('Supabase deleteCategory error:', err);
+      const { error } = await supabase.from('categories').delete().eq('id', id);
+      if (error) {
+        console.error('Supabase deleteCategory error:', error.message);
+        throw new Error(error.message);
       }
+      return true;
     }
 
-    const current = getStored<Category[]>(STORAGE_KEYS.CATEGORIES, INITIAL_CATEGORIES);
+    const current = getStored<Category[]>(STORAGE_KEYS.CATEGORIES, []);
     const filtered = current.filter((c) => c.id !== id);
     setStored(STORAGE_KEYS.CATEGORIES, filtered);
     return true;
@@ -321,67 +257,65 @@ export const api = {
     limit?: number;
     page?: number;
   }): Promise<Product[]> {
-    if (isFirebaseConfigured) {
-      const fbProds = await firebaseService.getProducts(params);
-      if (fbProds && fbProds.length > 0) return fbProds;
-    }
-
     let prods: Product[] = [];
 
-    if (isSupabaseConfigured) {
+    if (isFirebaseConfigured) {
       try {
-        let query = supabase.from('products').select(`
-          *,
-          categories:category_id (name, slug),
-          product_images (*),
-          product_variants (*)
-        `);
-
-        if (!params?.includeInactive) query = query.eq('is_active', true);
-        if (params?.featured) query = query.eq('is_featured', true);
-
-        const { data, error } = await query.order('created_at', { ascending: false });
-
-        if (!error && data && data.length > 0) {
-          prods = data.map((d: any) => ({
-            id: d.id,
-            name: d.name,
-            sku: d.sku,
-            slug: d.slug,
-            short_description: d.short_description || '',
-            description: d.description,
-            category_id: d.category_id,
-            category_name: d.categories?.name,
-            category_slug: d.categories?.slug,
-            price: Number(d.price),
-            sale_price: d.sale_price !== null && d.sale_price !== undefined ? Number(d.sale_price) : null,
-            cost_price: Number(d.cost_price || 0),
-            stock_quantity: Number(d.stock_quantity),
-            low_stock_threshold: Number(d.low_stock_threshold || 5),
-            brand: d.brand || 'Salalakart',
-            barcode: d.barcode || undefined,
-            weight: d.weight || undefined,
-            dimensions: d.dimensions || undefined,
-            is_featured: Boolean(d.is_featured),
-            is_active: Boolean(d.is_active),
-            rating: Number(d.rating || 5.0),
-            review_count: Number(d.review_count || 0),
-            images: (d.product_images || []).sort(
-              (a: any, b: any) => (a.display_order || 0) - (b.display_order || 0)
-            ),
-            variants: d.product_variants || [],
-            created_at: d.created_at,
-            updated_at: d.updated_at,
-          }));
-        } else if (error) {
-          console.warn('Supabase getProducts error, falling back:', error.message);
-        }
+        prods = await firebaseService.getProducts(params);
+        return prods;
       } catch (err) {
-        console.warn('Supabase getProducts exception:', err);
+        console.error('Firebase getProducts error:', err);
+        throw err;
       }
-    }
+    } else if (isSupabaseConfigured) {
+      let query = supabase.from('products').select(`
+        *,
+        categories:category_id (name, slug),
+        product_images (*),
+        product_variants (*)
+      `);
 
-    if (prods.length === 0) {
+      if (!params?.includeInactive) query = query.eq('is_active', true);
+      if (params?.featured) query = query.eq('is_featured', true);
+
+      const { data, error } = await query.order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Supabase getProducts error:', error.message);
+        throw new Error(error.message);
+      }
+
+      prods = (data || []).map((d: any) => ({
+        id: d.id,
+        name: d.name,
+        sku: d.sku,
+        slug: d.slug,
+        short_description: d.short_description || '',
+        description: d.description,
+        category_id: d.category_id,
+        category_name: d.categories?.name,
+        category_slug: d.categories?.slug,
+        price: Number(d.price),
+        sale_price: d.sale_price !== null && d.sale_price !== undefined ? Number(d.sale_price) : null,
+        cost_price: Number(d.cost_price || 0),
+        stock_quantity: Number(d.stock_quantity),
+        low_stock_threshold: Number(d.low_stock_threshold || 5),
+        brand: d.brand || '',
+        barcode: d.barcode || undefined,
+        weight: d.weight || undefined,
+        dimensions: d.dimensions || undefined,
+        is_featured: Boolean(d.is_featured),
+        is_active: Boolean(d.is_active),
+        rating: Number(d.rating || 5.0),
+        review_count: Number(d.review_count || 0),
+        images: (d.product_images || []).sort(
+          (a: any, b: any) => (a.display_order || 0) - (b.display_order || 0)
+        ),
+        variants: d.product_variants || [],
+        created_at: d.created_at,
+        updated_at: d.updated_at,
+      }));
+    } else {
       prods = getStoredProducts();
     }
 
@@ -647,16 +581,16 @@ export const api = {
   // ----------------------------------------------------
   async getBanners(includeInactive = false): Promise<Banner[]> {
     if (isSupabaseConfigured) {
-      try {
-        let q = supabase.from('banners').select('*').order('display_order', { ascending: true });
-        if (!includeInactive) q = q.eq('is_active', true);
-        const { data, error } = await q;
-        if (!error && data && data.length > 0) return data;
-      } catch (err) {
-        console.warn('Supabase getBanners error:', err);
+      let q = supabase.from('banners').select('*').order('display_order', { ascending: true });
+      if (!includeInactive) q = q.eq('is_active', true);
+      const { data, error } = await q;
+      if (error) {
+        console.error('Supabase getBanners error:', error.message);
+        throw new Error(error.message);
       }
+      return data || [];
     }
-    const banners = getStored<Banner[]>(STORAGE_KEYS.BANNERS, INITIAL_BANNERS);
+    const banners = getStored<Banner[]>(STORAGE_KEYS.BANNERS, []);
     return includeInactive ? banners : banners.filter((b) => b.is_active);
   },
 
@@ -665,12 +599,14 @@ export const api = {
       try {
         const { data, error } = await supabase.from('banners').insert(banner).select().single();
         if (!error && data) return data;
+        if (error) throw new Error(error.message);
       } catch (err) {
-        console.warn('Supabase createBanner error:', err);
+        console.error('Supabase createBanner error:', err);
+        throw err;
       }
     }
     const newB: Banner = { ...banner, id: `ban-${Date.now()}`, created_at: new Date().toISOString() };
-    const list = getStored<Banner[]>(STORAGE_KEYS.BANNERS, INITIAL_BANNERS);
+    const list = getStored<Banner[]>(STORAGE_KEYS.BANNERS, []);
     list.push(newB);
     setStored(STORAGE_KEYS.BANNERS, list);
     return newB;
@@ -681,11 +617,13 @@ export const api = {
       try {
         const { data, error } = await supabase.from('banners').update(updates).eq('id', id).select().single();
         if (!error && data) return data;
+        if (error) throw new Error(error.message);
       } catch (err) {
-        console.warn('Supabase updateBanner error:', err);
+        console.error('Supabase updateBanner error:', err);
+        throw err;
       }
     }
-    const list = getStored<Banner[]>(STORAGE_KEYS.BANNERS, INITIAL_BANNERS);
+    const list = getStored<Banner[]>(STORAGE_KEYS.BANNERS, []);
     const idx = list.findIndex((b) => b.id === id);
     if (idx === -1) throw new Error('Banner not found');
     list[idx] = { ...list[idx], ...updates };
@@ -695,14 +633,14 @@ export const api = {
 
   async deleteBanner(id: string): Promise<boolean> {
     if (isSupabaseConfigured) {
-      try {
-        const { error } = await supabase.from('banners').delete().eq('id', id);
-        if (!error) return true;
-      } catch (err) {
-        console.warn('Supabase deleteBanner error:', err);
+      const { error } = await supabase.from('banners').delete().eq('id', id);
+      if (error) {
+        console.error('Supabase deleteBanner error:', error.message);
+        throw new Error(error.message);
       }
+      return true;
     }
-    const list = getStored<Banner[]>(STORAGE_KEYS.BANNERS, INITIAL_BANNERS);
+    const list = getStored<Banner[]>(STORAGE_KEYS.BANNERS, []);
     setStored(STORAGE_KEYS.BANNERS, list.filter((b) => b.id !== id));
     return true;
   },
@@ -712,20 +650,20 @@ export const api = {
   // ----------------------------------------------------
   async getCoupons(includeInactive = false): Promise<Coupon[]> {
     if (isSupabaseConfigured) {
-      try {
-        let q = supabase.from('coupons').select('*').order('created_at', { ascending: false });
-        if (!includeInactive) q = q.eq('is_active', true);
-        const { data, error } = await q;
-        if (!error && data && data.length > 0) return data;
-      } catch (err) {
-        console.warn('Supabase getCoupons error:', err);
+      let q = supabase.from('coupons').select('*').order('created_at', { ascending: false });
+      if (!includeInactive) q = q.eq('is_active', true);
+      const { data, error } = await q;
+      if (error) {
+        console.error('Supabase getCoupons error:', error.message);
+        throw new Error(error.message);
       }
+      return data || [];
     }
-    const coupons = getStored<Coupon[]>(STORAGE_KEYS.COUPONS, INITIAL_COUPONS);
+    const coupons = getStored<Coupon[]>(STORAGE_KEYS.COUPONS, []);
     return includeInactive ? coupons : coupons.filter((c) => c.is_active);
   },
 
-  async validateCoupon(code: string, subtotal: number, userId?: string): Promise<{ valid: boolean; discount: number; coupon?: Coupon; error?: string }> {
+  async validateCoupon(code: string, subtotal: number, _userId?: string): Promise<{ valid: boolean; discount: number; coupon?: Coupon; error?: string }> {
     const coupons = await this.getCoupons(true);
     const coupon = coupons.find((c) => c.code.toUpperCase() === code.toUpperCase().trim());
 
@@ -767,12 +705,14 @@ export const api = {
       try {
         const { data, error } = await supabase.from('coupons').insert({ ...coupon, times_used: 0 }).select().single();
         if (!error && data) return data;
+        if (error) throw new Error(error.message);
       } catch (err) {
-        console.warn('Supabase createCoupon error:', err);
+        console.error('Supabase createCoupon error:', err);
+        throw err;
       }
     }
     const newC: Coupon = { ...coupon, id: `coup-${Date.now()}`, times_used: 0 };
-    const list = getStored<Coupon[]>(STORAGE_KEYS.COUPONS, INITIAL_COUPONS);
+    const list = getStored<Coupon[]>(STORAGE_KEYS.COUPONS, []);
     list.push(newC);
     setStored(STORAGE_KEYS.COUPONS, list);
     return newC;
@@ -783,11 +723,13 @@ export const api = {
       try {
         const { data, error } = await supabase.from('coupons').update(updates).eq('id', id).select().single();
         if (!error && data) return data;
+        if (error) throw new Error(error.message);
       } catch (err) {
-        console.warn('Supabase updateCoupon error:', err);
+        console.error('Supabase updateCoupon error:', err);
+        throw err;
       }
     }
-    const list = getStored<Coupon[]>(STORAGE_KEYS.COUPONS, INITIAL_COUPONS);
+    const list = getStored<Coupon[]>(STORAGE_KEYS.COUPONS, []);
     const idx = list.findIndex((c) => c.id === id);
     if (idx === -1) throw new Error('Coupon not found');
     list[idx] = { ...list[idx], ...updates };
@@ -797,14 +739,14 @@ export const api = {
 
   async deleteCoupon(id: string): Promise<boolean> {
     if (isSupabaseConfigured) {
-      try {
-        const { error } = await supabase.from('coupons').delete().eq('id', id);
-        if (!error) return true;
-      } catch (err) {
-        console.warn('Supabase deleteCoupon error:', err);
+      const { error } = await supabase.from('coupons').delete().eq('id', id);
+      if (error) {
+        console.error('Supabase deleteCoupon error:', error.message);
+        throw new Error(error.message);
       }
+      return true;
     }
-    const list = getStored<Coupon[]>(STORAGE_KEYS.COUPONS, INITIAL_COUPONS);
+    const list = getStored<Coupon[]>(STORAGE_KEYS.COUPONS, []);
     setStored(STORAGE_KEYS.COUPONS, list.filter((c) => c.id !== id));
     return true;
   },
@@ -829,86 +771,101 @@ export const api = {
   // ----------------------------------------------------
   async getOrders(params?: { userId?: string; status?: OrderStatus; search?: string }): Promise<Order[]> {
     if (isFirebaseConfigured) {
-      const fbOrders = await firebaseService.getOrders(params?.userId);
-      if (fbOrders && fbOrders.length > 0) return fbOrders;
-    }
-
-    if (isSupabaseConfigured) {
       try {
-        let query = supabase.from('orders').select(`
-          *,
-          order_items (*),
-          order_status_history (*)
-        `).order('created_at', { ascending: false });
-
-        if (params?.userId) query = query.eq('user_id', params.userId);
-        if (params?.status) query = query.eq('order_status', params.status);
-
-        const { data, error } = await query;
-
-        if (!error && data && data.length > 0) {
-          let mapped: Order[] = data.map((o: any) => ({
-            id: o.id,
-            order_number: o.order_number,
-            user_id: o.user_id,
-            customer_name: o.customer_name,
-            customer_email: o.customer_email,
-            customer_phone: o.customer_phone,
-            shipping_address: o.shipping_address,
-            shipping_method_id: o.shipping_method_id,
-            shipping_method_name: o.shipping_method_name,
-            payment_method: o.payment_method,
-            payment_status: o.payment_status,
-            order_status: o.order_status,
-            tracking_number: o.tracking_number,
-            courier_name: o.courier_name,
-            subtotal: Number(o.subtotal),
-            discount_amount: Number(o.discount_amount || 0),
-            coupon_code: o.coupon_code,
-            shipping_fee: Number(o.shipping_fee || 0),
-            tax_amount: Number(o.tax_amount || 0),
-            total_amount: Number(o.total_amount),
-            notes: o.notes,
-            items: (o.order_items || []).map((i: any) => ({
-              id: i.id,
-              product_id: i.product_id,
-              product_name: i.product_name,
-              sku: i.sku,
-              price: Number(i.price),
-              quantity: Number(i.quantity),
-              total_price: Number(i.total_price),
-              image_url: i.image_url,
-              variant_details: i.variant_details,
-            })),
-            status_history: (o.order_status_history || []).map((h: any) => ({
-              id: h.id,
-              order_id: h.order_id,
-              status: h.status,
-              notes: h.notes,
-              created_at: h.created_at,
-            })),
-            created_at: o.created_at,
-            updated_at: o.updated_at,
-          }));
-
-          if (params?.search) {
-            const q = params.search.toLowerCase();
-            mapped = mapped.filter(
-              (o) =>
-                o.order_number.toLowerCase().includes(q) ||
-                o.customer_name.toLowerCase().includes(q) ||
-                o.customer_phone.toLowerCase().includes(q) ||
-                o.customer_email.toLowerCase().includes(q)
-            );
-          }
-          return mapped;
+        let fbOrders = await firebaseService.getOrders(params?.userId);
+        if (params?.status) fbOrders = fbOrders.filter((o) => o.order_status === params.status);
+        if (params?.search) {
+          const q = params.search.toLowerCase();
+          fbOrders = fbOrders.filter(
+            (o) =>
+              o.order_number.toLowerCase().includes(q) ||
+              o.customer_name.toLowerCase().includes(q) ||
+              o.customer_phone.toLowerCase().includes(q) ||
+              o.customer_email.toLowerCase().includes(q)
+          );
         }
+        return fbOrders;
       } catch (err) {
-        console.warn('Supabase getOrders error:', err);
+        console.error('Firebase getOrders error:', err);
+        throw err;
       }
     }
 
-    let orders = getStored<Order[]>(STORAGE_KEYS.ORDERS, INITIAL_ORDERS);
+    if (isSupabaseConfigured) {
+      let query = supabase.from('orders').select(`
+        *,
+        order_items (*),
+        order_status_history (*)
+      `).order('created_at', { ascending: false });
+
+      if (params?.userId) query = query.eq('user_id', params.userId);
+      if (params?.status) query = query.eq('order_status', params.status);
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Supabase getOrders error:', error.message);
+        throw new Error(error.message);
+      }
+
+      let mapped: Order[] = (data || []).map((o: any) => ({
+        id: o.id,
+        order_number: o.order_number,
+        user_id: o.user_id,
+        customer_name: o.customer_name,
+        customer_email: o.customer_email,
+        customer_phone: o.customer_phone,
+        shipping_address: o.shipping_address,
+        shipping_method_id: o.shipping_method_id,
+        shipping_method_name: o.shipping_method_name,
+        payment_method: o.payment_method,
+        payment_status: o.payment_status,
+        order_status: o.order_status,
+        tracking_number: o.tracking_number,
+        courier_name: o.courier_name,
+        subtotal: Number(o.subtotal),
+        discount_amount: Number(o.discount_amount || 0),
+        coupon_code: o.coupon_code,
+        shipping_fee: Number(o.shipping_fee || 0),
+        tax_amount: Number(o.tax_amount || 0),
+        total_amount: Number(o.total_amount),
+        notes: o.notes,
+        items: (o.order_items || []).map((i: any) => ({
+          id: i.id,
+          product_id: i.product_id,
+          product_name: i.product_name,
+          sku: i.sku,
+          price: Number(i.price),
+          quantity: Number(i.quantity),
+          total_price: Number(i.total_price),
+          image_url: i.image_url,
+          variant_details: i.variant_details,
+        })),
+        status_history: (o.order_status_history || []).map((h: any) => ({
+          id: h.id,
+          order_id: h.order_id,
+          status: h.status,
+          notes: h.notes,
+          created_at: h.created_at,
+        })),
+        created_at: o.created_at,
+        updated_at: o.updated_at,
+      }));
+
+      if (params?.search) {
+        const q = params.search.toLowerCase();
+        mapped = mapped.filter(
+          (o) =>
+            o.order_number.toLowerCase().includes(q) ||
+            o.customer_name.toLowerCase().includes(q) ||
+            o.customer_phone.toLowerCase().includes(q) ||
+            o.customer_email.toLowerCase().includes(q)
+        );
+      }
+      return mapped;
+    }
+
+    let orders = getStored<Order[]>(STORAGE_KEYS.ORDERS, []);
 
     if (params?.userId) orders = orders.filter((o) => o.user_id === params.userId);
     if (params?.status) orders = orders.filter((o) => o.order_status === params.status);
@@ -1044,7 +1001,7 @@ export const api = {
       ],
     };
 
-    const orders = getStored<Order[]>(STORAGE_KEYS.ORDERS, INITIAL_ORDERS);
+    const orders = getStored<Order[]>(STORAGE_KEYS.ORDERS, []);
     orders.unshift(newOrder);
     setStored(STORAGE_KEYS.ORDERS, orders);
 
@@ -1083,7 +1040,7 @@ export const api = {
       }
     }
 
-    const orders = getStored<Order[]>(STORAGE_KEYS.ORDERS, INITIAL_ORDERS);
+    const orders = getStored<Order[]>(STORAGE_KEYS.ORDERS, []);
     const index = orders.findIndex((o) => o.id === id);
     if (index === -1) throw new Error('Order not found');
 
@@ -1118,34 +1075,30 @@ export const api = {
 
     let movements: InventoryMovement[] = [];
     if (isSupabaseConfigured) {
-      try {
-        const { data, error } = await supabase
-          .from('inventory_movements')
-          .select('*, products:product_id(name, sku)')
-          .order('created_at', { ascending: false })
-          .limit(50);
+      const { data, error } = await supabase
+        .from('inventory_movements')
+        .select('*, products:product_id(name, sku)')
+        .order('created_at', { ascending: false })
+        .limit(50);
 
-        if (!error && data) {
-          movements = data.map((m: any) => ({
-            id: m.id,
-            product_id: m.product_id,
-            product_name: m.products?.name || 'Product',
-            product_sku: m.products?.sku || '',
-            change_type: m.change_type,
-            quantity_change: m.quantity_change,
-            previous_stock: m.previous_stock,
-            new_stock: m.new_stock,
-            notes: m.notes || '',
-            created_by: m.created_by || 'admin',
-            created_at: m.created_at,
-          }));
-        }
-      } catch (err) {
-        console.warn('Supabase getInventory movements error:', err);
+      if (error) {
+        console.error('Supabase getInventory movements error:', error.message);
+        throw new Error(error.message);
       }
-    }
-
-    if (movements.length === 0) {
+      movements = (data || []).map((m: any) => ({
+        id: m.id,
+        product_id: m.product_id,
+        product_name: m.products?.name || 'Product',
+        product_sku: m.products?.sku || '',
+        change_type: m.change_type,
+        quantity_change: m.quantity_change,
+        previous_stock: m.previous_stock,
+        new_stock: m.new_stock,
+        notes: m.notes || '',
+        created_by: m.created_by || 'admin',
+        created_at: m.created_at,
+      }));
+    } else {
       movements = getStored<InventoryMovement[]>(STORAGE_KEYS.INVENTORY, []);
     }
 
@@ -1220,33 +1173,31 @@ export const api = {
   // ----------------------------------------------------
   async getReviews(productId?: string, includeUnapproved = false): Promise<Review[]> {
     if (isSupabaseConfigured) {
-      try {
-        let q = supabase.from('reviews').select('*, products:product_id(name)').order('created_at', { ascending: false });
-        if (productId) q = q.eq('product_id', productId);
-        if (!includeUnapproved) q = q.eq('is_approved', true);
+      let q = supabase.from('reviews').select('*, products:product_id(name)').order('created_at', { ascending: false });
+      if (productId) q = q.eq('product_id', productId);
+      if (!includeUnapproved) q = q.eq('is_approved', true);
 
-        const { data, error } = await q;
-        if (!error && data && data.length > 0) {
-          return data.map((r: any) => ({
-            id: r.id,
-            product_id: r.product_id,
-            product_name: r.products?.name,
-            user_id: r.user_id,
-            customer_name: r.customer_name,
-            rating: r.rating,
-            title: r.title,
-            comment: r.comment,
-            is_verified_purchase: r.is_verified_purchase,
-            is_approved: r.is_approved,
-            created_at: r.created_at,
-          }));
-        }
-      } catch (err) {
-        console.warn('Supabase getReviews error:', err);
+      const { data, error } = await q;
+      if (error) {
+        console.error('Supabase getReviews error:', error.message);
+        throw new Error(error.message);
       }
+      return (data || []).map((r: any) => ({
+        id: r.id,
+        product_id: r.product_id,
+        product_name: r.products?.name,
+        user_id: r.user_id,
+        customer_name: r.customer_name,
+        rating: r.rating,
+        title: r.title,
+        comment: r.comment,
+        is_verified_purchase: r.is_verified_purchase,
+        is_approved: r.is_approved,
+        created_at: r.created_at,
+      }));
     }
 
-    let list = getStored<Review[]>(STORAGE_KEYS.REVIEWS, INITIAL_REVIEWS);
+    let list = getStored<Review[]>(STORAGE_KEYS.REVIEWS, []);
     if (productId) list = list.filter((r) => r.product_id === productId);
     return includeUnapproved ? list : list.filter((r) => r.is_approved);
   },
@@ -1263,12 +1214,14 @@ export const api = {
       try {
         const { data, error } = await supabase.from('reviews').insert(newRev).select().single();
         if (!error && data) return data;
+        if (error) throw new Error(error.message);
       } catch (err) {
-        console.warn('Supabase submitReview error:', err);
+        console.error('Supabase submitReview error:', err);
+        throw err;
       }
     }
 
-    const list = getStored<Review[]>(STORAGE_KEYS.REVIEWS, INITIAL_REVIEWS);
+    const list = getStored<Review[]>(STORAGE_KEYS.REVIEWS, []);
     list.unshift(newRev);
     setStored(STORAGE_KEYS.REVIEWS, list);
     return newRev;
@@ -1276,14 +1229,14 @@ export const api = {
 
   async updateReviewStatus(id: string, isApproved: boolean): Promise<boolean> {
     if (isSupabaseConfigured) {
-      try {
-        await supabase.from('reviews').update({ is_approved: isApproved }).eq('id', id);
-        return true;
-      } catch (err) {
-        console.warn('Supabase updateReviewStatus error:', err);
+      const { error } = await supabase.from('reviews').update({ is_approved: isApproved }).eq('id', id);
+      if (error) {
+        console.error('Supabase updateReviewStatus error:', error.message);
+        throw new Error(error.message);
       }
+      return true;
     }
-    const list = getStored<Review[]>(STORAGE_KEYS.REVIEWS, INITIAL_REVIEWS);
+    const list = getStored<Review[]>(STORAGE_KEYS.REVIEWS, []);
     const idx = list.findIndex((r) => r.id === id);
     if (idx !== -1) {
       list[idx].is_approved = isApproved;
@@ -1294,14 +1247,14 @@ export const api = {
 
   async deleteReview(id: string): Promise<boolean> {
     if (isSupabaseConfigured) {
-      try {
-        await supabase.from('reviews').delete().eq('id', id);
-        return true;
-      } catch (err) {
-        console.warn('Supabase deleteReview error:', err);
+      const { error } = await supabase.from('reviews').delete().eq('id', id);
+      if (error) {
+        console.error('Supabase deleteReview error:', error.message);
+        throw new Error(error.message);
       }
+      return true;
     }
-    const list = getStored<Review[]>(STORAGE_KEYS.REVIEWS, INITIAL_REVIEWS);
+    const list = getStored<Review[]>(STORAGE_KEYS.REVIEWS, []);
     setStored(STORAGE_KEYS.REVIEWS, list.filter((r) => r.id !== id));
     return true;
   },
@@ -1311,32 +1264,32 @@ export const api = {
   // ----------------------------------------------------
   async getPayments() {
     if (isSupabaseConfigured) {
-      try {
-        const { data, error } = await supabase
-          .from('payments')
-          .select('*, orders:order_id(order_number, customer_name, customer_email)')
-          .order('created_at', { ascending: false });
+      const { data, error } = await supabase
+        .from('payments')
+        .select('*, orders:order_id(order_number, customer_name, customer_email)')
+        .order('created_at', { ascending: false });
 
-        if (!error && data && data.length > 0) {
-          return data.map((p: any) => ({
-            id: p.id,
-            order_id: p.order_id,
-            order_number: p.orders?.order_number,
-            customer_name: p.orders?.customer_name,
-            provider: p.provider,
-            transaction_id: p.transaction_id,
-            amount: Number(p.amount),
-            currency: p.currency,
-            status: p.status,
-            created_at: p.created_at,
-          }));
-        }
-      } catch (err) {
-        console.warn('Supabase getPayments error:', err);
+      if (error) {
+        console.error('Supabase getPayments error:', error.message);
+        throw new Error(error.message);
+      }
+      if (data && data.length > 0) {
+        return data.map((p: any) => ({
+          id: p.id,
+          order_id: p.order_id,
+          order_number: p.orders?.order_number,
+          customer_name: p.orders?.customer_name,
+          provider: p.provider,
+          transaction_id: p.transaction_id,
+          amount: Number(p.amount),
+          currency: p.currency,
+          status: p.status,
+          created_at: p.created_at,
+        }));
       }
     }
 
-    // Synthesize ledger from existing orders
+    // Synthesize ledger from existing real orders
     const orders = await this.getOrders();
     return orders.map((o) => ({
       id: `pay-${o.id}`,
@@ -1398,30 +1351,39 @@ export const api = {
   // CUSTOMERS
   // ----------------------------------------------------
   async getCustomers(): Promise<UserProfile[]> {
-    if (isSupabaseConfigured) {
+    if (isFirebaseConfigured) {
       try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('id, email, full_name, phone, avatar_url, created_at, updated_at, user_roles:user_roles(role)')
-          .order('created_at', { ascending: false });
-
-        if (!error && data && data.length > 0) {
-          return data.map((p: any) => ({
-            id: p.id,
-            email: p.email,
-            full_name: p.full_name,
-            phone: p.phone || '',
-            avatar_url: p.avatar_url || '',
-            role: p.user_roles?.[0]?.role === 'admin' ? 'admin' : 'customer',
-            created_at: p.created_at,
-            updated_at: p.updated_at,
-          }));
-        }
+        return await firebaseService.getCustomers();
       } catch (err) {
-        console.warn('Supabase getCustomers error:', err);
+        console.error('Firebase getCustomers error:', err);
+        throw err;
       }
     }
-    return getStored<UserProfile[]>(STORAGE_KEYS.CUSTOMERS, INITIAL_CUSTOMERS);
+
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, email, full_name, phone, avatar_url, created_at, updated_at, user_roles:user_roles(role)')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Supabase getCustomers error:', error.message);
+        throw new Error(error.message);
+      }
+
+      return (data || []).map((p: any) => ({
+        id: p.id,
+        email: p.email,
+        full_name: p.full_name,
+        phone: p.phone || '',
+        avatar_url: p.avatar_url || '',
+        role: p.user_roles?.[0]?.role === 'admin' ? 'admin' : 'customer',
+        created_at: p.created_at,
+        updated_at: p.updated_at,
+      }));
+    }
+
+    return getStored<UserProfile[]>(STORAGE_KEYS.CUSTOMERS, []);
   },
 
   // ----------------------------------------------------

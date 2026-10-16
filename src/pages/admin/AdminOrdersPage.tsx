@@ -12,21 +12,30 @@ import {
   Truck,
   RotateCcw,
   XCircle,
+  AlertCircle,
 } from 'lucide-react';
 import { formatPrice } from '../../utils/currency';
 
 export const AdminOrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [paymentFilter, setPaymentFilter] = useState<string>('all');
 
   const loadOrders = async () => {
     setLoading(true);
-    const ords = await api.getOrders();
-    setOrders(ords);
-    setLoading(false);
+    setError(null);
+    try {
+      const ords = await api.getOrders();
+      setOrders(ords);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to retrieve orders');
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -111,8 +120,30 @@ export const AdminOrdersPage: React.FC = () => {
       <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
         {loading ? (
           <div className="py-16 text-center text-xs text-slate-400">Loading orders...</div>
+        ) : error ? (
+          <div className="py-16 text-center p-8">
+            <AlertCircle className="w-10 h-10 text-rose-500 mx-auto mb-3" />
+            <p className="text-sm font-bold text-rose-700">Failed to load orders</p>
+            <p className="text-xs text-slate-500 mt-1">{error}</p>
+            <button
+              onClick={loadOrders}
+              className="mt-4 px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition-colors"
+            >
+              Retry
+            </button>
+          </div>
         ) : filtered.length === 0 ? (
-          <div className="py-16 text-center text-xs text-slate-400">No orders match filters.</div>
+          <div className="py-16 text-center p-8">
+            <ShoppingBag className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+            <p className="text-sm font-bold text-slate-700">
+              {orders.length === 0 ? 'No orders yet' : 'No orders match filters'}
+            </p>
+            <p className="text-xs text-slate-400 mt-1">
+              {orders.length === 0
+                ? 'Orders will appear here as customers place purchases.'
+                : 'Try clearing or adjusting your search keywords and filters.'}
+            </p>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left">

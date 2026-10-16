@@ -37,7 +37,7 @@ export const AdminOrderDetailPage: React.FC = () => {
         setOrder(data);
         setNewStatus(data.order_status);
         setTrackingNumber(data.tracking_number || '');
-        setCourierName(data.courier_name || 'Oman Post Express');
+        setCourierName(data.courier_name || '');
       }
       setLoading(false);
     }
@@ -147,7 +147,7 @@ export const AdminOrderDetailPage: React.FC = () => {
               type="text"
               value={trackingNumber}
               onChange={(e) => setTrackingNumber(e.target.value)}
-              placeholder="e.g. OM-EXP-908124"
+              placeholder="Enter courier tracking ID"
               className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 font-mono"
             />
           </div>
@@ -158,7 +158,7 @@ export const AdminOrderDetailPage: React.FC = () => {
               type="text"
               value={courierName}
               onChange={(e) => setCourierName(e.target.value)}
-              placeholder="e.g. Oman Post Express"
+              placeholder="e.g. Courier / Delivery Service"
               className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50"
             />
           </div>
@@ -169,7 +169,7 @@ export const AdminOrderDetailPage: React.FC = () => {
               type="text"
               value={statusNotes}
               onChange={(e) => setStatusNotes(e.target.value)}
-              placeholder="e.g. Dispatched with flight express dispatch..."
+              placeholder="Add optional notes for this status update..."
               className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50"
             />
           </div>

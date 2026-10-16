@@ -134,7 +134,7 @@ export const Footer: React.FC = () => {
           {/* Customer Service & Policies */}
           <div>
             <h4 className="font-brand font-bold text-white text-base mb-4 tracking-wide">Customer Care</h4>
-            <ul className="space-y-2.5 text-xs text-slate-300">
+            <ul className="space-y-2.5 text-xs text-slate-400">
               <li>
                 <Link to="/about" className="hover:text-[#8fe40f] transition-colors">
                   About Salalakart Zone
@@ -212,9 +212,6 @@ export const Footer: React.FC = () => {
                 </span>
                 <span className="px-2 py-1 rounded bg-black/40 border border-white/10 text-[11px] font-bold">
                   UPI / Cards
-                </span>
-                <span className="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-[11px] font-bold">
-                  Bank Transfer
                 </span>
               </div>
             </div>
