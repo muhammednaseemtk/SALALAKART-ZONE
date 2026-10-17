@@ -29,6 +29,7 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { UserProfile, UserRole } from '../types';
+import { notifyCatalogChanged } from '../services/realtime';
 
 export type BackendType = 'firebase' | 'supabase' | 'local';
 
@@ -47,7 +48,7 @@ interface AuthContextType {
     password: string,
     fullName: string,
     phone?: string
-  ) => Promise<{ success: boolean; error?: string }>;
+  ) => Promise<{ success: boolean; error?: string; message?: string; requiresEmailConfirmation?: boolean }>;
   logout: () => Promise<void>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<{ success: boolean; error?: string }>;
   resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>;
@@ -235,11 +236,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     email: string
   ): Promise<UserProfile | null> => {
     try {
-      const { data: profile } = await supabase
+      let { data: profile } = await supabase
         .from('profiles')
         .select('id, email, full_name, phone, avatar_url, created_at, updated_at')
         .eq('id', userId)
         .maybeSingle();
+
+      // If profile record does not yet exist in public.profiles, self-heal and create it
+      if (!profile) {
+        try {
+          const { data: authData } = await supabase.auth.getUser();
+          const metaName = authData?.user?.user_metadata?.full_name || email.split('@')[0];
+          const metaPhone = authData?.user?.user_metadata?.phone || '';
+
+          const { data: insertedProf } = await supabase
+            .from('profiles')
+            .upsert({
+              id: userId,
+              email: email,
+              full_name: metaName,
+              phone: metaPhone,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            }, { onConflict: 'id' })
+            .select()
+            .maybeSingle();
+
+          if (insertedProf) {
+            profile = insertedProf;
+            notifyCatalogChanged({
+              type: 'customer',
+              action: 'create',
+              data: insertedProf,
+            });
+          }
+        } catch (healErr) {
+          console.warn('Profile self-healing insert notice:', healErr);
+        }
+      }
 
       // Check admin status using the robust multi-layer checkUserIsAdmin helper
       const isUserAdmin = await checkUserIsAdmin(userId, email);
@@ -422,7 +456,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     password: string,
     fullName: string,
     phone?: string
-  ): Promise<{ success: boolean; error?: string }> => {
+  ): Promise<{ success: boolean; error?: string; message?: string; requiresEmailConfirmation?: boolean }> => {
     setIsLoading(true);
     const cleanEmail = email.trim().toLowerCase();
 
@@ -478,9 +512,63 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         if (data.user) {
-          await fetchSupabaseUserProfile(data.user.id, data.user.email || cleanEmail);
-          setIsLoading(false);
-          return { success: true };
+          const profilePayload = {
+            id: data.user.id,
+            email: cleanEmail,
+            full_name: fullName,
+            phone: phone || '',
+            created_at: data.user.created_at || new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+
+          // If session is immediately established (auto-confirmed or instant session):
+          if (data.session) {
+            try {
+              await supabase.from('profiles').upsert(profilePayload, { onConflict: 'id' });
+            } catch (profErr) {
+              console.warn('Direct profile upsert note during registration:', profErr);
+            }
+
+            try {
+              await supabase.from('user_roles').insert({
+                user_id: data.user.id,
+                role: 'customer',
+              });
+            } catch {
+              // Handled by database trigger or duplicate key ignored
+            }
+
+            // Immediately broadcast event so open Admin Customers pages update instantly
+            notifyCatalogChanged({
+              type: 'customer',
+              action: 'create',
+              data: {
+                ...profilePayload,
+                role: 'customer',
+              },
+            });
+
+            await fetchSupabaseUserProfile(data.user.id, data.user.email || cleanEmail);
+            setIsLoading(false);
+            return { success: true };
+          } else {
+            // Email confirmation is required: do not treat as an active authenticated session
+            notifyCatalogChanged({
+              type: 'customer',
+              action: 'create',
+              data: {
+                ...profilePayload,
+                role: 'customer',
+              },
+            });
+
+            setIsLoading(false);
+            return {
+              success: true,
+              requiresEmailConfirmation: true,
+              message: 'Account created! Please check your email to verify your account before logging in.',
+            };
+          }
         }
       } catch (err: unknown) {
         setIsLoading(false);

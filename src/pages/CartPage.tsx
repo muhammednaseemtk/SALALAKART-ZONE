@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, Sparkles, ShieldCheck, Truck } from 'lucide-react';
+import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, Sparkles, ShieldCheck } from 'lucide-react';
 import { formatPrice } from '../utils/currency';
 
 export const CartPage: React.FC = () => {
@@ -248,14 +248,10 @@ export const CartPage: React.FC = () => {
             </button>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2 text-xs text-slate-500">
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 text-xs text-slate-500">
             <p className="flex items-center gap-2 font-medium text-slate-700">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
               <span>Safe & Secure Bank Encrypted Checkout</span>
-            </p>
-            <p className="flex items-center gap-2 font-medium text-slate-700">
-              <Truck className="w-4 h-4 text-cyan-600" />
-              <span>Free Delivery On Orders Over ₹75</span>
             </p>
           </div>
         </div>

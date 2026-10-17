@@ -1,17 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { api } from '../../services/api';
+import { useCatalogRealtime } from '../../hooks/useCatalogRealtime';
 import { UserProfile, Order } from '../../types';
-import { Users, Search, ShoppingBag, Phone, Mail, ShieldCheck, AlertCircle } from 'lucide-react';
+import { Users, Search, ShoppingBag, Phone, Mail, ShieldCheck, AlertCircle, RefreshCw } from 'lucide-react';
 import { formatPrice } from '../../utils/currency';
 
 export const AdminCustomersPage: React.FC = () => {
   const [customers, setCustomers] = useState<UserProfile[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState<'all' | 'customer' | 'admin'>('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -25,13 +27,17 @@ export const AdminCustomersPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     load();
-  }, []);
+  }, [load]);
+
+  // Real-time synchronization for new customer registrations & profile updates
+  useCatalogRealtime(load);
 
   const filtered = customers.filter((c) => {
+    if (roleFilter !== 'all' && c.role !== roleFilter) return false;
     const q = search.toLowerCase();
     return (
       c.full_name.toLowerCase().includes(q) ||
@@ -54,10 +60,18 @@ export const AdminCustomersPage: React.FC = () => {
             View profiles and customer purchase engagement
           </p>
         </div>
+        <button
+          onClick={load}
+          disabled={loading}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+          <span>Refresh</span>
+        </button>
       </div>
 
-      {/* Search */}
-      <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs flex items-center gap-3">
+      {/* Search and Filters */}
+      <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
         <div className="relative flex-1">
           <input
             type="text"
@@ -67,6 +81,34 @@ export const AdminCustomersPage: React.FC = () => {
             className="w-full text-xs p-2.5 pl-9 rounded-xl border border-slate-200 bg-slate-50/50 focus:outline-pink-500"
           />
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+        </div>
+
+        {/* Role Filter Tabs */}
+        <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl shrink-0">
+          <button
+            onClick={() => setRoleFilter('all')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              roleFilter === 'all' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900'
+            }`}
+          >
+            All ({customers.length})
+          </button>
+          <button
+            onClick={() => setRoleFilter('customer')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              roleFilter === 'customer' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900'
+            }`}
+          >
+            Customers ({customers.filter((c) => c.role === 'customer').length})
+          </button>
+          <button
+            onClick={() => setRoleFilter('admin')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              roleFilter === 'admin' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900'
+            }`}
+          >
+            Admins ({customers.filter((c) => c.role === 'admin').length})
+          </button>
         </div>
       </div>
 

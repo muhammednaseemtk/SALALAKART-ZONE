@@ -12,9 +12,7 @@ import {
   Heart,
   ShoppingCart,
   Check,
-  Truck,
   ShieldCheck,
-  RotateCcw,
   Sparkles,
   Share2,
   Package,
@@ -393,21 +391,13 @@ export const ProductDetailPage: React.FC = () => {
           </div>
 
           {/* Quick Perks Highlights */}
-          <div className="grid grid-cols-3 gap-3 pt-4 border-t border-slate-100 text-center">
-            <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100">
-              <Truck className="w-5 h-5 text-pink-600 mx-auto mb-1" />
-              <p className="text-[11px] font-bold text-slate-800">Free Delivery</p>
-              <p className="text-[10px] text-slate-500">On orders over ₹75</p>
-            </div>
-            <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100">
-              <ShieldCheck className="w-5 h-5 text-emerald-600 mx-auto mb-1" />
-              <p className="text-[11px] font-bold text-slate-800">100% Genuine</p>
-              <p className="text-[10px] text-slate-500">Brand certified toys</p>
-            </div>
-            <div className="p-3 rounded-2xl bg-slate-50 border border-slate-100">
-              <RotateCcw className="w-5 h-5 text-cyan-600 mx-auto mb-1" />
-              <p className="text-[11px] font-bold text-slate-800">Easy Returns</p>
-              <p className="text-[10px] text-slate-500">7-day exchange</p>
+          <div className="pt-4 border-t border-slate-100 dark:border-white/10 text-center">
+            <div className="p-3 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 flex items-center justify-center gap-2.5">
+              <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-[#8fe40f]" />
+              <div className="text-left">
+                <p className="text-[11px] font-bold text-slate-800 dark:text-white">100% Genuine</p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400">Brand certified toys</p>
+              </div>
             </div>
           </div>
         </div>

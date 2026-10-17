@@ -4,7 +4,7 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 export type CatalogChangeAction = 'create' | 'update' | 'delete' | 'any';
 
 export interface CatalogChangeEvent {
-  type: 'product' | 'category' | 'banner' | 'catalog';
+  type: 'product' | 'category' | 'banner' | 'customer' | 'catalog';
   action: CatalogChangeAction;
   data?: any;
 }
@@ -221,6 +221,23 @@ function initRealtimeChannel() {
         { event: '*', schema: 'public', table: 'product_variants' },
         () => {
           dispatchLocal({ type: 'product', action: 'update' });
+        }
+      )
+      // 7. Listen for Database CDC on profiles (customer registrations & updates)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'profiles' },
+        (payload) => {
+          dispatchLocal({
+            type: 'customer',
+            action:
+              payload.eventType === 'INSERT'
+                ? 'create'
+                : payload.eventType === 'DELETE'
+                ? 'delete'
+                : 'update',
+            data: payload.new || payload.old,
+          });
         }
       )
       .subscribe((status, err) => {
