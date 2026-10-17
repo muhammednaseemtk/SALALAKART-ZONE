@@ -18,6 +18,7 @@ import {
   InventoryMovement,
   StoreSettings,
   UserProfile,
+  UserRole,
 } from '../types';
 import { formatPrice } from '../utils/currency';
 
@@ -1531,26 +1532,51 @@ export const api = {
     }
 
     if (isSupabaseConfigured) {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, email, full_name, phone, avatar_url, created_at, updated_at, user_roles:user_roles(role)')
-        .order('created_at', { ascending: false });
+      try {
+        // Query profiles and user roles using decoupled queries to prevent PGRST200 foreign key cache errors
+        const [profilesRes, rolesRes] = await Promise.all([
+          supabase
+            .from('profiles')
+            .select('id, email, full_name, phone, avatar_url, created_at, updated_at')
+            .order('created_at', { ascending: false }),
+          supabase
+            .from('user_roles')
+            .select('user_id, role'),
+        ]);
 
-      if (error) {
-        console.error('Supabase getCustomers error:', error.message);
-        throw new Error(error.message);
+        if (profilesRes.error) {
+          console.error('Supabase getCustomers error fetching profiles:', profilesRes.error.message);
+          throw new Error(profilesRes.error.message);
+        }
+
+        // Map roles by user_id for fast, reliable lookup
+        const roleMap = new Map<string, string>();
+        if (rolesRes.data && !rolesRes.error) {
+          for (const r of rolesRes.data) {
+            if (r.role === 'admin' || !roleMap.has(r.user_id)) {
+              roleMap.set(r.user_id, r.role);
+            }
+          }
+        }
+
+        return (profilesRes.data || []).map((p: any) => ({
+          id: p.id,
+          email: p.email,
+          full_name: p.full_name || p.email?.split('@')[0] || 'Customer',
+          phone: p.phone || '',
+          avatar_url: p.avatar_url || '',
+          role: (roleMap.get(p.id) === 'admin' ? 'admin' : 'customer') as UserRole,
+          created_at: p.created_at,
+          updated_at: p.updated_at,
+        }));
+      } catch (err: any) {
+        console.error('Supabase getCustomers error:', err.message || err);
+        const fallback = getStored<UserProfile[]>(STORAGE_KEYS.CUSTOMERS, []);
+        if (fallback.length > 0) {
+          return fallback;
+        }
+        throw new Error(err.message || 'Failed to retrieve customer accounts');
       }
-
-      return (data || []).map((p: any) => ({
-        id: p.id,
-        email: p.email,
-        full_name: p.full_name,
-        phone: p.phone || '',
-        avatar_url: p.avatar_url || '',
-        role: p.user_roles?.[0]?.role === 'admin' ? 'admin' : 'customer',
-        created_at: p.created_at,
-        updated_at: p.updated_at,
-      }));
     }
 
     return getStored<UserProfile[]>(STORAGE_KEYS.CUSTOMERS, []);
@@ -1560,9 +1586,14 @@ export const api = {
   // REPORTS & REAL-TIME ANALYTICS
   // ----------------------------------------------------
   async getReports() {
-    const orders = await this.getOrders();
-    const products = await this.getProducts({ includeInactive: true });
-    const customers = await this.getCustomers();
+    const [orders, products, customers] = await Promise.all([
+      this.getOrders(),
+      this.getProducts({ includeInactive: true }),
+      this.getCustomers().catch((err) => {
+        console.warn('getReports: Note while retrieving customers:', err.message || err);
+        return [];
+      }),
+    ]);
 
     const totalSales = orders
       .filter((o) => o.payment_status === 'paid' || o.order_status === 'delivered')
