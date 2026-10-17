@@ -80,6 +80,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // 1. Check for temporary development admin session
       const tempAdmin = getTempAdminSession();
       if (tempAdmin && mounted) {
+        // Ensure Supabase Auth session is active so PostgreSQL RLS policies permit admin operations
+        if (isSupabaseConfigured) {
+          try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+              await supabase.auth.signInWithPassword({
+                email: tempAdmin.email,
+                password: TEMP_ADMIN_CREDENTIALS.password,
+              });
+            }
+          } catch (authErr) {
+            console.warn('Failed to auto-refresh Supabase admin session:', authErr);
+          }
+        }
+
         const adminProfile: UserProfile = {
           id: tempAdmin.id,
           email: tempAdmin.email,
@@ -354,7 +369,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Brief simulation to demonstrate validation & button disabled state
     await new Promise((resolve) => setTimeout(resolve, 250));
 
-    const isValid = validateTempAdminCredentials(email, password);
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const isValid = validateTempAdminCredentials(cleanEmail, password);
 
     if (!isValid) {
       setIsLoading(false);
@@ -362,6 +378,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         success: false,
         error: 'Invalid admin email or password.',
       };
+    }
+
+    // Authenticate with Supabase Auth so PostgreSQL RLS policies recognize the administrator session
+    if (isSupabaseConfigured) {
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: cleanEmail,
+          password,
+        });
+
+        if (error) {
+          console.warn('Supabase admin signIn warning:', error.message);
+        } else if (data?.user) {
+          await fetchSupabaseUserProfile(data.user.id, data.user.email || cleanEmail);
+        }
+      } catch (err) {
+        console.warn('Supabase admin auth exception:', err);
+      }
     }
 
     const session = setTempAdminSession();

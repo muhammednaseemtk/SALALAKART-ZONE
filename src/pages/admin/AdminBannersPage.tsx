@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
 import { Banner } from '../../types';
-import { Image, Plus, Edit, Trash2, CheckCircle, X, AlertCircle } from 'lucide-react';
+import { Image, Plus, Edit, Trash2, CheckCircle, X, AlertCircle, Loader2 } from 'lucide-react';
 
 export const AdminBannersPage: React.FC = () => {
   const [banners, setBanners] = useState<Banner[]>([]);
@@ -9,6 +9,9 @@ export const AdminBannersPage: React.FC = () => {
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [successFeedback, setSuccessFeedback] = useState<string | null>(null);
 
   // Form State
   const [title, setTitle] = useState('');
@@ -40,6 +43,7 @@ export const AdminBannersPage: React.FC = () => {
 
   const openCreateModal = () => {
     setEditingBanner(null);
+    setFormError(null);
     setTitle('');
     setSubtitle('');
     setImageUrl('');
@@ -53,44 +57,76 @@ export const AdminBannersPage: React.FC = () => {
 
   const openEditModal = (b: Banner) => {
     setEditingBanner(b);
+    setFormError(null);
     setTitle(b.title);
-    setSubtitle(b.subtitle);
+    setSubtitle(b.subtitle || '');
     setImageUrl(b.image_url);
-    setButtonText(b.button_text);
-    setLinkUrl(b.link_url);
+    setButtonText(b.button_text || 'Shop Now');
+    setLinkUrl(b.link_url || '/shop');
     setBadgeText(b.badge_text || '');
-    setDisplayOrder(b.display_order);
+    setDisplayOrder(b.display_order ?? 1);
     setIsActive(b.is_active);
     setModalOpen(true);
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
+
+    if (!title.trim()) {
+      setFormError('Headline title is required.');
+      return;
+    }
+
+    if (!imageUrl.trim()) {
+      setFormError('Banner image URL is required.');
+      return;
+    }
+
+    setSubmitting(true);
+    setFormError(null);
+
     const payload = {
-      title,
-      subtitle,
-      image_url: imageUrl,
-      button_text: buttonText,
-      link_url: linkUrl,
-      badge_text: badgeText,
-      display_order: Number(displayOrder),
+      title: title.trim(),
+      subtitle: subtitle.trim(),
+      image_url: imageUrl.trim(),
+      button_text: buttonText.trim() || 'Shop Now',
+      link_url: linkUrl.trim() || '/shop',
+      badge_text: badgeText.trim() || undefined,
+      display_order: Number(displayOrder) || 1,
       is_active: isActive,
     };
 
-    if (editingBanner) {
-      await api.updateBanner(editingBanner.id, payload);
-    } else {
-      await api.createBanner(payload);
-    }
+    try {
+      if (editingBanner) {
+        await api.updateBanner(editingBanner.id, payload);
+        setSuccessFeedback('Banner updated successfully!');
+      } else {
+        await api.createBanner(payload);
+        setSuccessFeedback('Banner created successfully!');
+      }
 
-    setModalOpen(false);
-    loadBanners();
+      setModalOpen(false);
+      setTimeout(() => setSuccessFeedback(null), 4000);
+      await loadBanners();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Database operation failed while saving banner.';
+      setFormError(msg);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleDelete = async (id: string, title: string) => {
     if (confirm(`Delete banner "${title}"?`)) {
-      await api.deleteBanner(id);
-      loadBanners();
+      try {
+        await api.deleteBanner(id);
+        setSuccessFeedback('Banner deleted successfully.');
+        setTimeout(() => setSuccessFeedback(null), 4000);
+        await loadBanners();
+      } catch (err: unknown) {
+        alert(err instanceof Error ? err.message : 'Failed to delete banner.');
+      }
     }
   };
 
@@ -117,6 +153,21 @@ export const AdminBannersPage: React.FC = () => {
           <span>Add New Banner</span>
         </button>
       </div>
+
+      {successFeedback && (
+        <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-between text-xs text-emerald-800 shadow-xs animate-in fade-in">
+          <div className="flex items-center gap-2">
+            <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span className="font-bold">{successFeedback}</span>
+          </div>
+          <button
+            onClick={() => setSuccessFeedback(null)}
+            className="text-emerald-700 hover:text-emerald-900 text-xs p-1 cursor-pointer"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
 
       {loading ? (
         <div className="py-16 text-center text-xs text-slate-400 bg-white rounded-3xl border border-slate-200/80">
@@ -222,14 +273,25 @@ export const AdminBannersPage: React.FC = () => {
               </div>
 
               <form onSubmit={handleSave} className="space-y-4">
+                {formError && (
+                  <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2.5 text-xs text-rose-700">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-500" />
+                    <div>
+                      <p className="font-bold">Error saving banner</p>
+                      <p className="mt-0.5 text-rose-600">{formError}</p>
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <label className="text-xs font-bold text-slate-700 block mb-1">Headline Title *</label>
                   <input
                     type="text"
                     required
+                    disabled={submitting}
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 font-bold"
+                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 font-bold focus:bg-white focus:outline-pink-500 disabled:opacity-60"
                     placeholder="e.g. Super Fun Toys & Cool Gadgets!"
                   />
                 </div>
@@ -238,9 +300,10 @@ export const AdminBannersPage: React.FC = () => {
                   <label className="text-xs font-bold text-slate-700 block mb-1">Subtitle Description</label>
                   <textarea
                     rows={2}
+                    disabled={submitting}
                     value={subtitle}
                     onChange={(e) => setSubtitle(e.target.value)}
-                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50"
+                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-pink-500 disabled:opacity-60"
                     placeholder="Brief description..."
                   />
                 </div>
@@ -250,9 +313,11 @@ export const AdminBannersPage: React.FC = () => {
                   <input
                     type="text"
                     required
+                    disabled={submitting}
                     value={imageUrl}
                     onChange={(e) => setImageUrl(e.target.value)}
-                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 font-mono"
+                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 font-mono focus:bg-white focus:outline-pink-500 disabled:opacity-60"
+                    placeholder="https://images.unsplash.com/..."
                   />
                 </div>
 
@@ -261,18 +326,20 @@ export const AdminBannersPage: React.FC = () => {
                     <label className="text-xs font-bold text-slate-700 block mb-1">Button Text</label>
                     <input
                       type="text"
+                      disabled={submitting}
                       value={buttonText}
                       onChange={(e) => setButtonText(e.target.value)}
-                      className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 font-bold"
+                      className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 font-bold focus:bg-white focus:outline-pink-500 disabled:opacity-60"
                     />
                   </div>
                   <div>
                     <label className="text-xs font-bold text-slate-700 block mb-1">Destination Link</label>
                     <input
                       type="text"
+                      disabled={submitting}
                       value={linkUrl}
                       onChange={(e) => setLinkUrl(e.target.value)}
-                      className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 font-mono"
+                      className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 font-mono focus:bg-white focus:outline-pink-500 disabled:opacity-60"
                     />
                   </div>
                 </div>
@@ -282,19 +349,21 @@ export const AdminBannersPage: React.FC = () => {
                     <label className="text-xs font-bold text-slate-700 block mb-1">Top Badge Pill</label>
                     <input
                       type="text"
+                      disabled={submitting}
                       value={badgeText}
                       onChange={(e) => setBadgeText(e.target.value)}
                       placeholder="e.g. Up to 40% Off"
-                      className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50"
+                      className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-pink-500 disabled:opacity-60"
                     />
                   </div>
                   <div>
                     <label className="text-xs font-bold text-slate-700 block mb-1">Display Order</label>
                     <input
                       type="number"
+                      disabled={submitting}
                       value={displayOrder}
                       onChange={(e) => setDisplayOrder(Number(e.target.value))}
-                      className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 font-bold"
+                      className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-slate-50 font-bold focus:bg-white focus:outline-pink-500 disabled:opacity-60"
                     />
                   </div>
                 </div>
@@ -303,9 +372,10 @@ export const AdminBannersPage: React.FC = () => {
                   <input
                     type="checkbox"
                     id="ban_active"
+                    disabled={submitting}
                     checked={isActive}
                     onChange={(e) => setIsActive(e.target.checked)}
-                    className="rounded text-pink-600 focus:ring-pink-500 w-4 h-4"
+                    className="rounded text-pink-600 focus:ring-pink-500 w-4 h-4 cursor-pointer disabled:opacity-60"
                   />
                   <label htmlFor="ban_active" className="text-xs font-bold text-slate-700 cursor-pointer">
                     Banner is Active and Shown on Homepage
@@ -315,16 +385,25 @@ export const AdminBannersPage: React.FC = () => {
                 <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
                   <button
                     type="button"
+                    disabled={submitting}
                     onClick={() => setModalOpen(false)}
-                    className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600"
+                    className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 rounded-xl bg-pink-600 text-white text-xs font-bold hover:bg-pink-700"
+                    disabled={submitting}
+                    className="px-5 py-2 rounded-xl bg-pink-600 text-white text-xs font-bold hover:bg-pink-700 flex items-center gap-1.5 disabled:opacity-75 cursor-pointer shadow-sm shadow-pink-500/20"
                   >
-                    {editingBanner ? 'Save Banner' : 'Create Banner'}
+                    {submitting ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      <span>{editingBanner ? 'Save Changes' : 'Create Banner'}</span>
+                    )}
                   </button>
                 </div>
               </form>

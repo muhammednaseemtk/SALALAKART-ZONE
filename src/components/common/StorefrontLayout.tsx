@@ -13,7 +13,6 @@ import {
   Heart,
   ShoppingCart,
   User,
-  MessageCircle,
 } from 'lucide-react';
 
 export const StorefrontLayout: React.FC = () => {
@@ -42,21 +41,6 @@ export const StorefrontLayout: React.FC = () => {
 
       {/* Footer */}
       <Footer />
-
-      {/* Floating WhatsApp Quick Support Button */}
-      <a
-        href="https://wa.me/96891234567?text=Hello%20SALALAKART%20ZONE!%20I%20have%20an%20inquiry%20about%20your%20products."
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-24 md:bottom-6 right-3 sm:right-6 z-40 bg-emerald-500 hover:bg-emerald-600 text-white p-3 sm:p-3.5 rounded-full shadow-xl shadow-emerald-500/30 hover:scale-110 transition-all flex items-center justify-center group"
-        title="Chat with us on WhatsApp"
-        aria-label="WhatsApp Support"
-      >
-        <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6 fill-current" />
-        <span className="hidden sm:inline max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-xs transition-all duration-300 ease-in-out text-xs font-bold pl-0 group-hover:pl-2">
-          WhatsApp Help
-        </span>
-      </a>
 
       {/* Mobile Sticky Bottom Navigation App Bar (Only visible on screens < md) */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-md border-t border-slate-200/80 dark:border-white/10 px-2 py-1.5 flex items-center justify-around shadow-lg">

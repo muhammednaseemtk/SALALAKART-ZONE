@@ -2,6 +2,7 @@ import { supabase, isSupabaseConfigured } from './supabase';
 import { notifyCatalogChanged } from './realtime';
 import { isFirebaseConfigured } from '../lib/firebase';
 import { firebaseService } from './firebaseService';
+import { getTempAdminSession, TEMP_ADMIN_CREDENTIALS } from '../lib/tempAdminAuth';
 import {
   INITIAL_SHIPPING_METHODS,
   DEFAULT_STORE_SETTINGS,
@@ -768,9 +769,35 @@ export const api = {
   async createBanner(banner: Omit<Banner, 'id' | 'created_at'>): Promise<Banner> {
     if (isSupabaseConfigured) {
       try {
-        const { data, error } = await supabase.from('banners').insert(banner).select().single();
+        // Ensure admin session is established before insert so PostgreSQL RLS authorizes the action
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          const tempAdmin = getTempAdminSession();
+          if (tempAdmin) {
+            await supabase.auth.signInWithPassword({
+              email: tempAdmin.email,
+              password: TEMP_ADMIN_CREDENTIALS.password,
+            });
+          }
+        }
+
+        const payload = {
+          title: banner.title.trim(),
+          subtitle: (banner.subtitle || '').trim(),
+          image_url: banner.image_url.trim(),
+          button_text: (banner.button_text || 'Shop Now').trim(),
+          link_url: (banner.link_url || '/shop').trim(),
+          badge_text: banner.badge_text ? banner.badge_text.trim() : null,
+          display_order: Number(banner.display_order) || 0,
+          is_active: Boolean(banner.is_active),
+        };
+
+        const { data, error } = await supabase.from('banners').insert(payload).select().single();
         if (!error && data) return data;
-        if (error) throw new Error(error.message);
+        if (error) {
+          console.error('Supabase createBanner database error:', error);
+          throw new Error(error.message);
+        }
       } catch (err) {
         console.error('Supabase createBanner error:', err);
         throw err;
@@ -786,7 +813,28 @@ export const api = {
   async updateBanner(id: string, updates: Partial<Banner>): Promise<Banner> {
     if (isSupabaseConfigured) {
       try {
-        const { data, error } = await supabase.from('banners').update(updates).eq('id', id).select().single();
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          const tempAdmin = getTempAdminSession();
+          if (tempAdmin) {
+            await supabase.auth.signInWithPassword({
+              email: tempAdmin.email,
+              password: TEMP_ADMIN_CREDENTIALS.password,
+            });
+          }
+        }
+
+        const payload: Record<string, any> = {};
+        if (updates.title !== undefined) payload.title = updates.title.trim();
+        if (updates.subtitle !== undefined) payload.subtitle = (updates.subtitle || '').trim();
+        if (updates.image_url !== undefined) payload.image_url = updates.image_url.trim();
+        if (updates.button_text !== undefined) payload.button_text = updates.button_text.trim();
+        if (updates.link_url !== undefined) payload.link_url = updates.link_url.trim();
+        if (updates.badge_text !== undefined) payload.badge_text = updates.badge_text ? updates.badge_text.trim() : null;
+        if (updates.display_order !== undefined) payload.display_order = Number(updates.display_order) || 0;
+        if (updates.is_active !== undefined) payload.is_active = Boolean(updates.is_active);
+
+        const { data, error } = await supabase.from('banners').update(payload).eq('id', id).select().single();
         if (!error && data) return data;
         if (error) throw new Error(error.message);
       } catch (err) {
@@ -804,12 +852,28 @@ export const api = {
 
   async deleteBanner(id: string): Promise<boolean> {
     if (isSupabaseConfigured) {
-      const { error } = await supabase.from('banners').delete().eq('id', id);
-      if (error) {
-        console.error('Supabase deleteBanner error:', error.message);
-        throw new Error(error.message);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          const tempAdmin = getTempAdminSession();
+          if (tempAdmin) {
+            await supabase.auth.signInWithPassword({
+              email: tempAdmin.email,
+              password: TEMP_ADMIN_CREDENTIALS.password,
+            });
+          }
+        }
+
+        const { error } = await supabase.from('banners').delete().eq('id', id);
+        if (error) {
+          console.error('Supabase deleteBanner error:', error.message);
+          throw new Error(error.message);
+        }
+        return true;
+      } catch (err) {
+        console.error('Supabase deleteBanner error:', err);
+        throw err;
       }
-      return true;
     }
     const list = getStored<Banner[]>(STORAGE_KEYS.BANNERS, []);
     setStored(STORAGE_KEYS.BANNERS, list.filter((b) => b.id !== id));
