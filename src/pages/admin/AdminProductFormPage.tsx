@@ -43,7 +43,6 @@ export const AdminProductFormPage: React.FC = () => {
     low_stock_threshold: 5,
     brand: '',
     barcode: '',
-    weight: '',
     dimensions: '',
     is_featured: false,
     is_active: true,
@@ -80,7 +79,6 @@ export const AdminProductFormPage: React.FC = () => {
             low_stock_threshold: existing.low_stock_threshold || 5,
             brand: existing.brand || '',
             barcode: existing.barcode || '',
-            weight: existing.weight || '',
             dimensions: existing.dimensions || '',
             is_featured: existing.is_featured,
             is_active: existing.is_active,
@@ -323,7 +321,7 @@ export const AdminProductFormPage: React.FC = () => {
               />
             </div>
 
-            <div>
+            <div className="sm:col-span-2">
               <label className="text-xs font-bold text-slate-700 block mb-1">Barcode / UPC (Optional)</label>
               <input
                 type="text"
@@ -331,17 +329,6 @@ export const AdminProductFormPage: React.FC = () => {
                 onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
                 className="w-full text-xs p-3 rounded-xl border border-slate-200 focus:outline-pink-500 bg-slate-50/50 font-mono"
                 placeholder="Optional barcode / UPC"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">Weight</label>
-              <input
-                type="text"
-                value={formData.weight}
-                onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
-                className="w-full text-xs p-3 rounded-xl border border-slate-200 focus:outline-pink-500 bg-slate-50/50"
-                placeholder="e.g. 0.5 kg"
               />
             </div>
 

@@ -469,10 +469,12 @@ export const ProductDetailPage: React.FC = () => {
                     <td className="py-2.5 font-bold text-slate-500">Product SKU</td>
                     <td className="py-2.5 text-slate-800 font-mono">{product.sku}</td>
                   </tr>
-                  <tr>
-                    <td className="py-2.5 font-bold text-slate-500">Weight</td>
-                    <td className="py-2.5 text-slate-800">{product.weight || '0.5 kg'}</td>
-                  </tr>
+                  {product.weight && (
+                    <tr>
+                      <td className="py-2.5 font-bold text-slate-500">Weight</td>
+                      <td className="py-2.5 text-slate-800">{product.weight}</td>
+                    </tr>
+                  )}
                   <tr>
                     <td className="py-2.5 font-bold text-slate-500">Dimensions</td>
                     <td className="py-2.5 text-slate-800">{product.dimensions || 'Standard retail package'}</td>
