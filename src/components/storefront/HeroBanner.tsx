@@ -41,8 +41,9 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({ banners }) => {
 
   if (!banners || banners.length === 0) return null;
 
-  const current = banners[currentIndex];
-  const activeGradient = BRAND_GRADIENTS[currentIndex % BRAND_GRADIENTS.length];
+  const safeIndex = currentIndex >= banners.length ? 0 : currentIndex;
+  const current = banners[safeIndex] || banners[0];
+  const activeGradient = BRAND_GRADIENTS[safeIndex % BRAND_GRADIENTS.length];
 
   return (
     <div className="relative w-full overflow-hidden rounded-3xl bg-[#f2f3ed] dark:bg-[#033d2f] border border-[#dce0d4] dark:border-[#8fe40f]/20 shadow-xl my-6 transition-colors duration-300">

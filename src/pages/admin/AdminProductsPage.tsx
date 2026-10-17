@@ -32,7 +32,7 @@ export const AdminProductsPage: React.FC = () => {
     try {
       const [prods, cats] = await Promise.all([
         api.getProducts({ includeInactive: true }),
-        api.getCategories(),
+        api.getCategories(true),
       ]);
       setProducts(prods);
       setCategories(cats);

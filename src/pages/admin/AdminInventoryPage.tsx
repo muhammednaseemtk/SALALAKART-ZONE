@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { api } from '../../services/api';
+import { useCatalogRealtime } from '../../hooks/useCatalogRealtime';
 import { Product, InventoryMovement } from '../../types';
 import { Boxes, Plus, AlertTriangle, ArrowUpDown, History, Save, CheckCircle2, IndianRupee } from 'lucide-react';
 import { formatPrice } from '../../utils/currency';
@@ -18,7 +19,7 @@ export const AdminInventoryPage: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState(false);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -35,11 +36,14 @@ export const AdminInventoryPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [loadData]);
+
+  // Real-time synchronization
+  useCatalogRealtime(loadData);
 
   const handleAdjustStock = async (e: React.FormEvent) => {
     e.preventDefault();

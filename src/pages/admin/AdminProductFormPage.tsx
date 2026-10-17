@@ -55,7 +55,7 @@ export const AdminProductFormPage: React.FC = () => {
 
   useEffect(() => {
     async function init() {
-      const cats = await api.getCategories();
+      const cats = await api.getCategories(true);
       setCategories(cats);
 
       if (cats.length > 0 && !formData.category_id) {

@@ -107,10 +107,11 @@ export const api = {
   // ----------------------------------------------------
   // CATEGORIES
   // ----------------------------------------------------
-  async getCategories(): Promise<Category[]> {
+  async getCategories(includeInactive = false): Promise<Category[]> {
     if (isFirebaseConfigured) {
       try {
-        return await firebaseService.getCategories();
+        const cats = await firebaseService.getCategories();
+        return includeInactive ? cats : cats.filter((c) => c.is_active);
       } catch (err) {
         console.error('Firebase getCategories error:', err);
         throw err;
@@ -118,10 +119,16 @@ export const api = {
     }
 
     if (isSupabaseConfigured) {
-      const { data, error } = await supabase
+      let query = supabase
         .from('categories')
         .select('*, products:products(count)')
         .order('display_order', { ascending: true });
+
+      if (!includeInactive) {
+        query = query.eq('is_active', true);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Supabase getCategories error:', error.message);
@@ -142,7 +149,8 @@ export const api = {
       }));
     }
 
-    return getStored<Category[]>(STORAGE_KEYS.CATEGORIES, []);
+    const current = getStored<Category[]>(STORAGE_KEYS.CATEGORIES, []);
+    return includeInactive ? current : current.filter((c) => c.is_active);
   },
 
   async getCategoryBySlug(slug: string): Promise<Category | null> {
@@ -793,7 +801,10 @@ export const api = {
         };
 
         const { data, error } = await supabase.from('banners').insert(payload).select().single();
-        if (!error && data) return data;
+        if (!error && data) {
+          notifyCatalogChanged({ type: 'banner', action: 'create', data });
+          return data;
+        }
         if (error) {
           console.error('Supabase createBanner database error:', error);
           throw new Error(error.message);
@@ -807,6 +818,7 @@ export const api = {
     const list = getStored<Banner[]>(STORAGE_KEYS.BANNERS, []);
     list.push(newB);
     setStored(STORAGE_KEYS.BANNERS, list);
+    notifyCatalogChanged({ type: 'banner', action: 'create', data: newB });
     return newB;
   },
 
@@ -835,7 +847,10 @@ export const api = {
         if (updates.is_active !== undefined) payload.is_active = Boolean(updates.is_active);
 
         const { data, error } = await supabase.from('banners').update(payload).eq('id', id).select().single();
-        if (!error && data) return data;
+        if (!error && data) {
+          notifyCatalogChanged({ type: 'banner', action: 'update', data });
+          return data;
+        }
         if (error) throw new Error(error.message);
       } catch (err) {
         console.error('Supabase updateBanner error:', err);
@@ -847,6 +862,7 @@ export const api = {
     if (idx === -1) throw new Error('Banner not found');
     list[idx] = { ...list[idx], ...updates };
     setStored(STORAGE_KEYS.BANNERS, list);
+    notifyCatalogChanged({ type: 'banner', action: 'update', data: list[idx] });
     return list[idx];
   },
 
@@ -869,6 +885,7 @@ export const api = {
           console.error('Supabase deleteBanner error:', error.message);
           throw new Error(error.message);
         }
+        notifyCatalogChanged({ type: 'banner', action: 'delete', data: { id } });
         return true;
       } catch (err) {
         console.error('Supabase deleteBanner error:', err);
@@ -877,6 +894,7 @@ export const api = {
     }
     const list = getStored<Banner[]>(STORAGE_KEYS.BANNERS, []);
     setStored(STORAGE_KEYS.BANNERS, list.filter((b) => b.id !== id));
+    notifyCatalogChanged({ type: 'banner', action: 'delete', data: { id } });
     return true;
   },
 
@@ -1372,6 +1390,7 @@ export const api = {
           new_stock: newStock,
           notes: notes || '',
         });
+        notifyCatalogChanged({ type: 'product', action: 'update', data: { id: productId, stock_quantity: newStock } });
         return;
       } catch (err) {
         console.warn('Supabase adjustStock error:', err);
@@ -1401,6 +1420,7 @@ export const api = {
       created_at: new Date().toISOString(),
     });
     setStored(STORAGE_KEYS.INVENTORY, movements.slice(0, 100));
+    notifyCatalogChanged({ type: 'product', action: 'update', data: { id: productId, stock_quantity: newStock } });
   },
 
   // ----------------------------------------------------

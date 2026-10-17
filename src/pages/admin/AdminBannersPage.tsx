@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { api } from '../../services/api';
+import { useCatalogRealtime } from '../../hooks/useCatalogRealtime';
 import { Banner } from '../../types';
 import { Image, Plus, Edit, Trash2, CheckCircle, X, AlertCircle, Loader2 } from 'lucide-react';
 
@@ -23,7 +24,7 @@ export const AdminBannersPage: React.FC = () => {
   const [displayOrder, setDisplayOrder] = useState(1);
   const [isActive, setIsActive] = useState(true);
 
-  const loadBanners = async () => {
+  const loadBanners = useCallback(async () => {
     setLoading(true);
     setFetchError(null);
     try {
@@ -35,11 +36,14 @@ export const AdminBannersPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadBanners();
-  }, []);
+  }, [loadBanners]);
+
+  // Real-time synchronization across admin tabs & sessions
+  useCatalogRealtime(loadBanners);
 
   const openCreateModal = () => {
     setEditingBanner(null);

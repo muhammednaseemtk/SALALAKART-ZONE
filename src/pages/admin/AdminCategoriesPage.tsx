@@ -24,7 +24,7 @@ export const AdminCategoriesPage: React.FC = () => {
     setLoading(true);
     setFetchError(null);
     try {
-      const cats = await api.getCategories();
+      const cats = await api.getCategories(true);
       setCategories(cats);
     } catch (err: unknown) {
       setFetchError(err instanceof Error ? err.message : 'Failed to load categories');

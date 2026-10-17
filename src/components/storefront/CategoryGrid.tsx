@@ -40,7 +40,7 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
           to="/shop"
           className="text-xs font-bold text-pink-600 hover:text-pink-700 flex items-center gap-1 group whitespace-nowrap"
         >
-          <span>View All 15 Categories</span>
+          <span>{categories.length > 0 ? `View All ${categories.length} Categories` : 'View All Categories'}</span>
           <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
         </Link>
       </div>

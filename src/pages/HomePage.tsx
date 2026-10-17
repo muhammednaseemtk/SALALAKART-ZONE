@@ -13,11 +13,13 @@ import {
   Star,
   Quote,
   CheckCircle2,
+  Sparkles,
 } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [watchGadgetProducts, setWatchGadgetProducts] = useState<Product[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
@@ -35,6 +37,7 @@ export const HomePage: React.FC = () => {
 
       setBanners(banList);
       setCategories(catList);
+      setFeaturedProducts(prodList.slice(0, 8));
       setWatchGadgetProducts(
         prodList.filter((p) => p.category_slug === 'watches' || p.category_slug === 'smart-gadgets' || p.category_slug === 'electronic-gadgets')
       );
@@ -65,7 +68,44 @@ export const HomePage: React.FC = () => {
         <CategoryGrid categories={categories.slice(0, 12)} />
       </div>
 
-      {/* 5. Watches & Smart Gadgets Section (only shown if gadgets exist) */}
+      {/* 3. Featured & Trending Products Section */}
+      {featuredProducts.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-14">
+          <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-8 gap-2">
+            <div>
+              <div className="flex items-center gap-1.5 text-pink-600 font-bold text-xs uppercase tracking-wider bg-pink-50 px-3 py-1 rounded-full w-fit">
+                <Sparkles className="w-3.5 h-3.5 text-pink-500" />
+                <span>Featured Collection</span>
+              </div>
+              <h2 className="font-brand font-black text-2xl sm:text-3xl text-slate-900 mt-2">
+                Trending & Popular Products
+              </h2>
+              <p className="text-sm text-slate-500 mt-1">
+                Handpicked bestsellers, latest arrivals, and customer favorites in Salalah
+              </p>
+            </div>
+            <Link
+              to="/shop"
+              className="text-xs font-bold text-pink-600 hover:text-pink-700 flex items-center gap-1 group whitespace-nowrap"
+            >
+              <span>View All Products</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+            {featuredProducts.map((prod) => (
+              <ProductCard
+                key={prod.id}
+                product={prod}
+                onQuickView={(p) => setQuickViewProduct(p)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* 4. Watches & Smart Gadgets Section (only shown if gadgets exist) */}
       {watchGadgetProducts.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-14">
           <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-8 gap-2">
