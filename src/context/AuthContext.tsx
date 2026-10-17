@@ -61,6 +61,60 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const LOCAL_AUTH_KEY = 'salalakart_auth_session';
 
+/**
+ * Maps Supabase Auth errors and other registration errors to clear, user-friendly messages.
+ * Prevents technical rate-limit messages from leaking and surfaces server retry durations if provided.
+ */
+export function formatSignupError(error: any): string {
+  if (!error) return 'Registration failed. Please try again.';
+
+  const code = String(error.code || '').toLowerCase();
+  const rawMsg = typeof error === 'string' ? error : String(error.message || '');
+  const msgLower = rawMsg.toLowerCase();
+  const status = error.status;
+
+  // 1. Email rate limit error (HTTP 429 over_email_send_rate_limit)
+  if (
+    code === 'over_email_send_rate_limit' ||
+    code === 'rate_limit_exceeded' ||
+    status === 429 ||
+    msgLower.includes('over_email_send_rate_limit') ||
+    msgLower.includes('email rate limit') ||
+    msgLower.includes('rate limit') ||
+    msgLower.includes('too many requests')
+  ) {
+    // Only display retry time if an accurate numerical duration was provided by the server
+    const retryAfter = error.retry_after ?? error.retryAfter ?? error.raw?.retry_after;
+    if (typeof retryAfter === 'number' && retryAfter > 0) {
+      return `Too many signup attempts. Please wait ${retryAfter} seconds before trying again.`;
+    }
+    return 'Too many signup attempts. Please wait a while before trying again.';
+  }
+
+  // 2. User already registered / exists
+  if (
+    code === 'user_already_exists' ||
+    msgLower.includes('already registered') ||
+    msgLower.includes('already exists') ||
+    msgLower.includes('user already registered')
+  ) {
+    return 'An account with this email already exists. Please sign in or reset your password.';
+  }
+
+  // 3. Network or connection failure
+  if (
+    msgLower.includes('failed to fetch') ||
+    msgLower.includes('networkerror') ||
+    msgLower.includes('network error') ||
+    msgLower.includes('load failed') ||
+    msgLower.includes('timeout')
+  ) {
+    return 'Network error. Please check your internet connection and try again.';
+  }
+
+  return rawMsg || 'Registration failed. Please try again.';
+}
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -508,7 +562,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (error) {
           setIsLoading(false);
-          return { success: false, error: error.message };
+          return { success: false, error: formatSignupError(error) };
         }
 
         if (data.user) {
@@ -572,8 +626,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } catch (err: unknown) {
         setIsLoading(false);
-        const msg = err instanceof Error ? err.message : 'Registration failed';
-        return { success: false, error: msg };
+        return { success: false, error: formatSignupError(err) };
       }
     }
 
