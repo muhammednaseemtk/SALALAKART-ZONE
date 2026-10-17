@@ -239,23 +239,99 @@ export const api = {
   },
 
   async deleteCategory(id: string): Promise<boolean> {
-    // Check if category has associated products
-    const products = await this.getProducts({ includeInactive: true });
-    const hasProducts = products.some((p) => p.category_id === id);
-    if (hasProducts) {
-      throw new Error(
-        'Cannot delete category: it still has associated products. Please reassign or delete them first.'
-      );
+    if (!id) {
+      throw new Error('Invalid category ID provided.');
     }
 
     if (isSupabaseConfigured) {
-      const { error } = await supabase.from('categories').delete().eq('id', id);
-      if (error) {
-        console.error('Supabase deleteCategory error:', error.message);
-        throw new Error(error.message);
+      // 1. Ensure active Supabase Auth session so PostgreSQL RLS policies recognize the admin
+      const tempAdmin = getTempAdminSession();
+      if (tempAdmin) {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (!session) {
+            await supabase.auth.signInWithPassword({
+              email: tempAdmin.email,
+              password: TEMP_ADMIN_CREDENTIALS.password,
+            });
+          }
+        } catch (authErr) {
+          console.warn('Auto-session refresh warning in deleteCategory:', authErr);
+        }
       }
+
+      // 2. Direct count check in Supabase database for products referencing this category
+      const { count: prodCount, error: countErr } = await supabase
+        .from('products')
+        .select('id', { count: 'exact', head: true })
+        .eq('category_id', id);
+
+      if (countErr) {
+        console.warn('Could not query product count for category:', countErr.message);
+      } else if (typeof prodCount === 'number' && prodCount > 0) {
+        throw new Error(
+          `Cannot delete category: it still contains ${prodCount} associated product${
+            prodCount > 1 ? 's' : ''
+          }. Please reassign or delete the products first.`
+        );
+      }
+
+      // 3. Execute delete with .select() to verify exact records removed
+      const { data, error } = await supabase
+        .from('categories')
+        .delete()
+        .eq('id', id)
+        .select();
+
+      if (error) {
+        console.error('Supabase deleteCategory error:', error);
+        // PostgreSQL foreign key violation (error code 23503)
+        if (
+          error.code === '23503' ||
+          error.message.toLowerCase().includes('foreign key constraint') ||
+          error.message.toLowerCase().includes('violates foreign key') ||
+          error.message.toLowerCase().includes('still referenced')
+        ) {
+          throw new Error(
+            'Cannot delete category: it still has associated products. Please reassign or delete them first.'
+          );
+        }
+        // PostgreSQL RLS violation (error code 42501)
+        if (
+          error.code === '42501' ||
+          error.message.toLowerCase().includes('row-level security') ||
+          error.message.toLowerCase().includes('permission denied')
+        ) {
+          throw new Error(
+            'Permission denied: Only authorized administrators can delete categories.'
+          );
+        }
+        throw new Error(error.message || 'Failed to delete category from database.');
+      }
+
+      // 4. If data is empty, 0 rows were deleted (record not found or RLS silently rejected)
+      if (!data || data.length === 0) {
+        throw new Error(
+          'Failed to delete category: Record not found or administrator permissions not verified. Please log in again.'
+        );
+      }
+
+      // 5. Update local cache and notify realtime subscribers
+      const current = getStored<Category[]>(STORAGE_KEYS.CATEGORIES, []);
+      const filtered = current.filter((c) => c.id !== id);
+      setStored(STORAGE_KEYS.CATEGORIES, filtered);
+
       notifyCatalogChanged({ type: 'category', action: 'delete', data: { id } });
       return true;
+    }
+
+    // Local storage fallback check
+    const localProducts = getStoredProducts();
+    const hasProducts = localProducts.some((p) => p.category_id === id);
+    if (hasProducts) {
+      throw new Error(
+        'Cannot delete category: it still contains associated products. Please reassign or delete them first.'
+      );
     }
 
     const current = getStored<Category[]>(STORAGE_KEYS.CATEGORIES, []);
