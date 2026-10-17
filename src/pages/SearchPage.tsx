@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { api } from '../services/api';
+import { useCatalogRealtime } from '../hooks/useCatalogRealtime';
 import { Product } from '../types';
 import { ProductCard } from '../components/storefront/ProductCard';
 import { QuickViewModal } from '../components/storefront/QuickViewModal';
@@ -14,15 +15,19 @@ export const SearchPage: React.FC = () => {
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function search() {
-      setLoading(true);
-      const res = await api.getProducts({ search: query });
-      setProducts(res);
-      setLoading(false);
-    }
-    search();
+  const search = useCallback(async () => {
+    setLoading(true);
+    const res = await api.getProducts({ search: query });
+    setProducts(res);
+    setLoading(false);
   }, [query]);
+
+  useEffect(() => {
+    search();
+  }, [search]);
+
+  // Real-time synchronization
+  useCatalogRealtime(search);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();

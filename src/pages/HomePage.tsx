@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../services/api';
+import { useCatalogRealtime } from '../hooks/useCatalogRealtime';
 import { Product, Category, Banner, Review } from '../types';
 import { HeroBanner } from '../components/storefront/HeroBanner';
 import { CategoryGrid } from '../components/storefront/CategoryGrid';
@@ -22,31 +23,35 @@ export const HomePage: React.FC = () => {
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function loadData() {
-      setLoading(true);
-      try {
-        const [banList, catList, prodList, revList] = await Promise.all([
-          api.getBanners(),
-          api.getCategories(),
-          api.getProducts(),
-          api.getReviews(),
-        ]);
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [banList, catList, prodList, revList] = await Promise.all([
+        api.getBanners(),
+        api.getCategories(),
+        api.getProducts(),
+        api.getReviews(),
+      ]);
 
-        setBanners(banList);
-        setCategories(catList);
-        setWatchGadgetProducts(
-          prodList.filter((p) => p.category_slug === 'watches' || p.category_slug === 'smart-gadgets' || p.category_slug === 'electronic-gadgets')
-        );
-        setReviews(revList);
-      } catch (err) {
-        console.error('Error loading homepage data:', err);
-      } finally {
-        setLoading(false);
-      }
+      setBanners(banList);
+      setCategories(catList);
+      setWatchGadgetProducts(
+        prodList.filter((p) => p.category_slug === 'watches' || p.category_slug === 'smart-gadgets' || p.category_slug === 'electronic-gadgets')
+      );
+      setReviews(revList);
+    } catch (err) {
+      console.error('Error loading homepage data:', err);
+    } finally {
+      setLoading(false);
     }
-    loadData();
   }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // Synchronize in real time with Supabase changes
+  useCatalogRealtime(loadData);
 
   return (
     <div className="min-h-screen pb-16">

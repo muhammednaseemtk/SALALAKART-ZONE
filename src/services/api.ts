@@ -1,4 +1,5 @@
 import { supabase, isSupabaseConfigured } from './supabase';
+import { notifyCatalogChanged } from './realtime';
 import { isFirebaseConfigured } from '../lib/firebase';
 import { firebaseService } from './firebaseService';
 import {
@@ -150,7 +151,9 @@ export const api = {
   async createCategory(cat: Omit<Category, 'id'>): Promise<Category> {
     if (isFirebaseConfigured) {
       try {
-        return await firebaseService.createCategory(cat);
+        const created = await firebaseService.createCategory(cat);
+        notifyCatalogChanged({ type: 'category', action: 'create', data: created });
+        return created;
       } catch (err) {
         console.warn('Firebase createCategory error:', err);
       }
@@ -172,8 +175,11 @@ export const api = {
           .select()
           .single();
 
-        if (!error && data) return data;
         if (error) throw new Error(error.message);
+        if (data) {
+          notifyCatalogChanged({ type: 'category', action: 'create', data });
+          return data;
+        }
       } catch (err) {
         console.error('Supabase createCategory error:', err);
         throw err;
@@ -188,6 +194,7 @@ export const api = {
     const current = getStored<Category[]>(STORAGE_KEYS.CATEGORIES, []);
     current.push(newCat);
     setStored(STORAGE_KEYS.CATEGORIES, current);
+    notifyCatalogChanged({ type: 'category', action: 'create', data: newCat });
     return newCat;
   },
 
@@ -201,8 +208,11 @@ export const api = {
           .select()
           .single();
 
-        if (!error && data) return data;
         if (error) throw new Error(error.message);
+        if (data) {
+          notifyCatalogChanged({ type: 'category', action: 'update', data });
+          return data;
+        }
       } catch (err) {
         console.error('Supabase updateCategory error:', err);
         throw err;
@@ -214,6 +224,7 @@ export const api = {
     if (index === -1) throw new Error('Category not found');
     current[index] = { ...current[index], ...updates };
     setStored(STORAGE_KEYS.CATEGORIES, current);
+    notifyCatalogChanged({ type: 'category', action: 'update', data: current[index] });
     return current[index];
   },
 
@@ -233,12 +244,14 @@ export const api = {
         console.error('Supabase deleteCategory error:', error.message);
         throw new Error(error.message);
       }
+      notifyCatalogChanged({ type: 'category', action: 'delete', data: { id } });
       return true;
     }
 
     const current = getStored<Category[]>(STORAGE_KEYS.CATEGORIES, []);
     const filtered = current.filter((c) => c.id !== id);
     setStored(STORAGE_KEYS.CATEGORIES, filtered);
+    notifyCatalogChanged({ type: 'category', action: 'delete', data: { id } });
     return true;
   },
 
@@ -373,11 +386,119 @@ export const api = {
   },
 
   async getProductBySlug(slug: string): Promise<Product | null> {
+    if (isSupabaseConfigured) {
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .select(`
+            *,
+            categories:category_id (name, slug),
+            product_images (*),
+            product_variants (*)
+          `)
+          .eq('slug', slug)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Supabase getProductBySlug error:', error.message);
+          return null;
+        }
+        if (!data) return null;
+
+        return {
+          id: data.id,
+          name: data.name,
+          sku: data.sku,
+          slug: data.slug,
+          short_description: data.short_description || '',
+          description: data.description,
+          category_id: data.category_id,
+          category_name: data.categories?.name,
+          category_slug: data.categories?.slug,
+          price: Number(data.price),
+          sale_price: data.sale_price !== null && data.sale_price !== undefined ? Number(data.sale_price) : null,
+          cost_price: Number(data.cost_price || 0),
+          stock_quantity: Number(data.stock_quantity),
+          low_stock_threshold: Number(data.low_stock_threshold || 5),
+          brand: data.brand || '',
+          barcode: data.barcode || undefined,
+          weight: data.weight || undefined,
+          dimensions: data.dimensions || undefined,
+          is_featured: Boolean(data.is_featured),
+          is_active: Boolean(data.is_active),
+          rating: Number(data.rating || 5.0),
+          review_count: Number(data.review_count || 0),
+          images: (data.product_images || []).sort(
+            (a: any, b: any) => (a.display_order || 0) - (b.display_order || 0)
+          ),
+          variants: data.product_variants || [],
+          created_at: data.created_at,
+          updated_at: data.updated_at,
+        };
+      } catch (err) {
+        console.error('Supabase getProductBySlug exception:', err);
+      }
+    }
+
     const prods = await this.getProducts({ includeInactive: true });
     return prods.find((p) => p.slug === slug) || null;
   },
 
   async getProductById(id: string): Promise<Product | null> {
+    if (isSupabaseConfigured) {
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .select(`
+            *,
+            categories:category_id (name, slug),
+            product_images (*),
+            product_variants (*)
+          `)
+          .eq('id', id)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Supabase getProductById error:', error.message);
+          return null;
+        }
+        if (!data) return null;
+
+        return {
+          id: data.id,
+          name: data.name,
+          sku: data.sku,
+          slug: data.slug,
+          short_description: data.short_description || '',
+          description: data.description,
+          category_id: data.category_id,
+          category_name: data.categories?.name,
+          category_slug: data.categories?.slug,
+          price: Number(data.price),
+          sale_price: data.sale_price !== null && data.sale_price !== undefined ? Number(data.sale_price) : null,
+          cost_price: Number(data.cost_price || 0),
+          stock_quantity: Number(data.stock_quantity),
+          low_stock_threshold: Number(data.low_stock_threshold || 5),
+          brand: data.brand || '',
+          barcode: data.barcode || undefined,
+          weight: data.weight || undefined,
+          dimensions: data.dimensions || undefined,
+          is_featured: Boolean(data.is_featured),
+          is_active: Boolean(data.is_active),
+          rating: Number(data.rating || 5.0),
+          review_count: Number(data.review_count || 0),
+          images: (data.product_images || []).sort(
+            (a: any, b: any) => (a.display_order || 0) - (b.display_order || 0)
+          ),
+          variants: data.product_variants || [],
+          created_at: data.created_at,
+          updated_at: data.updated_at,
+        };
+      } catch (err) {
+        console.error('Supabase getProductById exception:', err);
+      }
+    }
+
     const prods = await this.getProducts({ includeInactive: true });
     return prods.find((p) => p.id === id) || null;
   },
@@ -387,7 +508,9 @@ export const api = {
   ): Promise<Product> {
     if (isFirebaseConfigured) {
       try {
-        return await firebaseService.createProduct(productData);
+        const created = await firebaseService.createProduct(productData);
+        notifyCatalogChanged({ type: 'product', action: 'create', data: created });
+        return created;
       } catch (err) {
         console.warn('Firebase createProduct error:', err);
       }
@@ -435,7 +558,8 @@ export const api = {
             display_order: img.display_order || idx + 1,
             is_primary: img.is_primary ?? idx === 0,
           }));
-          await supabase.from('product_images').insert(imageRows);
+          const { error: imgErr } = await supabase.from('product_images').insert(imageRows);
+          if (imgErr) console.warn('Supabase product_images insert warning:', imgErr.message);
         }
 
         // 3. Insert variants if provided
@@ -449,24 +573,39 @@ export const api = {
             price_adjustment: v.price_adjustment || 0,
             stock_quantity: v.stock_quantity || 0,
           }));
-          await supabase.from('product_variants').insert(variantRows);
+          const { error: varErr } = await supabase.from('product_variants').insert(variantRows);
+          if (varErr) console.warn('Supabase product_variants insert warning:', varErr.message);
         }
 
         // 4. Record initial inventory movement
-        await supabase.from('inventory_movements').insert({
-          product_id: createdProd.id,
-          change_type: 'restock',
-          quantity_change: createdProd.stock_quantity,
-          previous_stock: 0,
-          new_stock: createdProd.stock_quantity,
-          notes: 'Initial stock on product creation',
-        });
+        try {
+          await supabase.from('inventory_movements').insert({
+            product_id: createdProd.id,
+            change_type: 'restock',
+            quantity_change: createdProd.stock_quantity,
+            previous_stock: 0,
+            new_stock: createdProd.stock_quantity,
+            notes: 'Initial stock on product creation',
+          });
+        } catch {
+          // Non-critical audit log
+        }
 
         // Retrieve full assembled product
         const fullProd = await this.getProductById(createdProd.id);
-        if (fullProd) return fullProd;
+        const result = fullProd || {
+          ...productRow,
+          id: createdProd.id,
+          images: productData.images || [],
+          variants: productData.variants || [],
+          created_at: createdProd.created_at,
+          updated_at: createdProd.updated_at,
+        };
+        notifyCatalogChanged({ type: 'product', action: 'create', data: result });
+        return result as Product;
       } catch (err: unknown) {
         console.error('Supabase createProduct error:', err);
+        throw err;
       }
     }
 
@@ -485,6 +624,7 @@ export const api = {
     setStored(STORAGE_KEYS.PRODUCTS, prods);
 
     await this.adjustStock(newProd.id, newProd.stock_quantity, 'restock', 'Initial stock on creation');
+    notifyCatalogChanged({ type: 'product', action: 'create', data: newProd });
     return newProd;
   },
 
@@ -500,7 +640,10 @@ export const api = {
           .select()
           .single();
 
-        if (error) console.error('Supabase updateProduct error:', error.message);
+        if (error) {
+          console.error('Supabase updateProduct error:', error.message);
+          throw new Error(error.message);
+        }
 
         // Update images if provided
         if (images && images.length > 0) {
@@ -515,10 +658,30 @@ export const api = {
           await supabase.from('product_images').insert(imageRows);
         }
 
+        // Update variants if provided
+        if (variants !== undefined) {
+          await supabase.from('product_variants').delete().eq('product_id', id);
+          if (variants.length > 0) {
+            const variantRows = variants.map((v) => ({
+              product_id: id,
+              name: v.name,
+              variant_type: v.variant_type,
+              value: v.value,
+              sku: v.sku || `${data?.sku || id}-${v.value}`,
+              price_adjustment: v.price_adjustment || 0,
+              stock_quantity: v.stock_quantity || 0,
+            }));
+            await supabase.from('product_variants').insert(variantRows);
+          }
+        }
+
         const fullUpdated = await this.getProductById(id);
+        notifyCatalogChanged({ type: 'product', action: 'update', data: fullUpdated || data });
         if (fullUpdated) return fullUpdated;
+        return data as Product;
       } catch (err) {
         console.error('Supabase updateProduct error:', err);
+        throw err;
       }
     }
 
@@ -545,6 +708,7 @@ export const api = {
       );
     }
 
+    notifyCatalogChanged({ type: 'product', action: 'update', data: prods[index] });
     return prods[index];
   },
 
@@ -552,16 +716,22 @@ export const api = {
     if (isSupabaseConfigured) {
       try {
         const { error } = await supabase.from('products').delete().eq('id', id);
-        if (!error) return true;
-        if (error) console.error('Supabase deleteProduct error:', error.message);
+        if (error) {
+          console.error('Supabase deleteProduct error:', error.message);
+          throw new Error(error.message);
+        }
+        notifyCatalogChanged({ type: 'product', action: 'delete', data: { id } });
+        return true;
       } catch (err) {
         console.error('Supabase deleteProduct error:', err);
+        throw err;
       }
     }
 
     const prods = getStoredProducts();
     const filtered = prods.filter((p) => p.id !== id);
     setStored(STORAGE_KEYS.PRODUCTS, filtered);
+    notifyCatalogChanged({ type: 'product', action: 'delete', data: { id } });
     return true;
   },
 

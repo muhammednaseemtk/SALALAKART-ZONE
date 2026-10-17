@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
+import { useCatalogRealtime } from '../hooks/useCatalogRealtime';
 import { Product, ProductVariant, Review } from '../types';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -47,33 +48,39 @@ export const ProductDetailPage: React.FC = () => {
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewSuccess, setReviewSuccess] = useState(false);
 
-  useEffect(() => {
-    async function load() {
-      if (!slug) return;
-      setLoading(true);
-      const prod = await api.getProductBySlug(slug);
-      if (prod) {
-        setProduct(prod);
-        setSelectedImage(prod.images[0]?.image_url || '');
-        if (prod.variants && prod.variants.length > 0) {
-          setSelectedVariant(prod.variants[0]);
-        } else {
-          setSelectedVariant(undefined);
-        }
-
-        // Related products in same category
-        const allProds = await api.getProducts({ categorySlug: prod.category_slug });
-        setRelatedProducts(allProds.filter((p) => p.id !== prod.id).slice(0, 4));
-
-        // Reviews
-        const revs = await api.getReviews(prod.id);
-        setReviews(revs);
+  const loadProduct = useCallback(async () => {
+    if (!slug) return;
+    setLoading(true);
+    const prod = await api.getProductBySlug(slug);
+    if (prod && prod.is_active) {
+      setProduct(prod);
+      setSelectedImage(prod.images[0]?.image_url || '');
+      if (prod.variants && prod.variants.length > 0) {
+        setSelectedVariant(prod.variants[0]);
+      } else {
+        setSelectedVariant(undefined);
       }
-      setLoading(false);
+
+      // Related products in same category
+      const allProds = await api.getProducts({ categorySlug: prod.category_slug });
+      setRelatedProducts(allProds.filter((p) => p.id !== prod.id).slice(0, 4));
+
+      // Reviews
+      const revs = await api.getReviews(prod.id);
+      setReviews(revs);
+    } else {
+      setProduct(null);
     }
-    load();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setLoading(false);
   }, [slug]);
+
+  useEffect(() => {
+    loadProduct();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [loadProduct]);
+
+  // Real-time synchronization for product updates, price changes, or deactivation
+  useCatalogRealtime(loadProduct);
 
   if (loading) {
     return (

@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../services/api';
+import { useCatalogRealtime } from '../hooks/useCatalogRealtime';
 import { Product, Category } from '../types';
 import { ProductCard } from '../components/storefront/ProductCard';
 import { QuickViewModal } from '../components/storefront/QuickViewModal';
@@ -39,36 +40,40 @@ export const ShopPage: React.FC = () => {
     if (categoryParam) setSelectedCategory(categoryParam);
   }, [categoryParam]);
 
-  useEffect(() => {
-    async function load() {
-      setLoading(true);
-      const [cats, prods] = await Promise.all([
-        api.getCategories(),
-        api.getProducts({
-          categorySlug: selectedCategory || undefined,
-          search: searchParam || undefined,
-          sort: sortBy,
-        }),
-      ]);
-      setCategories(cats);
+  const load = useCallback(async () => {
+    setLoading(true);
+    const [cats, prods] = await Promise.all([
+      api.getCategories(),
+      api.getProducts({
+        categorySlug: selectedCategory || undefined,
+        search: searchParam || undefined,
+        sort: sortBy,
+      }),
+    ]);
+    setCategories(cats);
 
-      let filtered = prods;
-      if (filterParam === 'offers') {
-        filtered = filtered.filter((p) => p.sale_price !== null && p.sale_price !== undefined && p.sale_price < p.price);
-      }
-      if (selectedBrand) {
-        filtered = filtered.filter((p) => p.brand === selectedBrand);
-      }
-      if (inStockOnly) {
-        filtered = filtered.filter((p) => p.stock_quantity > 0);
-      }
-      filtered = filtered.filter((p) => (p.sale_price || p.price) <= priceRange);
-
-      setProducts(filtered);
-      setLoading(false);
+    let filtered = prods;
+    if (filterParam === 'offers') {
+      filtered = filtered.filter((p) => p.sale_price !== null && p.sale_price !== undefined && p.sale_price < p.price);
     }
-    load();
+    if (selectedBrand) {
+      filtered = filtered.filter((p) => p.brand === selectedBrand);
+    }
+    if (inStockOnly) {
+      filtered = filtered.filter((p) => p.stock_quantity > 0);
+    }
+    filtered = filtered.filter((p) => (p.sale_price || p.price) <= priceRange);
+
+    setProducts(filtered);
+    setLoading(false);
   }, [selectedCategory, selectedBrand, inStockOnly, priceRange, sortBy, searchParam, filterParam]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  // Real-time synchronization with Supabase catalog
+  useCatalogRealtime(load);
 
   // Unique brands
   const brands = Array.from(new Set(products.map((p) => p.brand))).filter(Boolean);

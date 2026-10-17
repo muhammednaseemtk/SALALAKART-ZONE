@@ -92,6 +92,20 @@ export const CheckoutPage: React.FC = () => {
         is_default: true,
       };
 
+      // Validate current product data, active status, and stock before checkout
+      for (const item of items) {
+        const liveProd = await api.getProductById(item.product_id);
+        if (!liveProd || !liveProd.is_active) {
+          throw new Error(`"${item.product.name}" is no longer available in the store catalog. Please remove it from your cart.`);
+        }
+        const availableStock = item.variant_id && liveProd.variants
+          ? (liveProd.variants.find((v) => v.id === item.variant_id)?.stock_quantity ?? liveProd.stock_quantity)
+          : liveProd.stock_quantity;
+        if (item.quantity > availableStock) {
+          throw new Error(`Insufficient stock for "${liveProd.name}". Only ${availableStock} units available.`);
+        }
+      }
+
       const orderItems = items.map((i) => ({
         id: `ord-item-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
         product_id: i.product_id,

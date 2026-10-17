@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api } from '../services/api';
+import { useCatalogRealtime } from '../hooks/useCatalogRealtime';
 import { Product, Category } from '../types';
 import { ProductCard } from '../components/storefront/ProductCard';
 import { QuickViewModal } from '../components/storefront/QuickViewModal';
@@ -14,21 +15,25 @@ export const CategoryPage: React.FC = () => {
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const load = useCallback(async () => {
+    if (!slug) return;
+    setLoading(true);
+    const [cat, prods] = await Promise.all([
+      api.getCategoryBySlug(slug),
+      api.getProducts({ categorySlug: slug, sort: sortBy }),
+    ]);
+    setCategory(cat);
+    setProducts(prods);
+    setLoading(false);
+  }, [slug, sortBy]);
+
   useEffect(() => {
-    async function load() {
-      if (!slug) return;
-      setLoading(true);
-      const [cat, prods] = await Promise.all([
-        api.getCategoryBySlug(slug),
-        api.getProducts({ categorySlug: slug, sort: sortBy }),
-      ]);
-      setCategory(cat);
-      setProducts(prods);
-      setLoading(false);
-    }
     load();
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [slug, sortBy]);
+  }, [load]);
+
+  // Real-time synchronization
+  useCatalogRealtime(load);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-screen">

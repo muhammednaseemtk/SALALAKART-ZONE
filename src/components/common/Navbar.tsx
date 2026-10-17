@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { BrandLogo } from './BrandLogo';
 import { ThemeToggle } from './ThemeToggle';
@@ -6,6 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { api } from '../../services/api';
+import { useCatalogRealtime } from '../../hooks/useCatalogRealtime';
 import { Category, Product } from '../../types';
 import {
   Search,
@@ -40,9 +41,16 @@ export const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  useEffect(() => {
-    api.getCategories().then(setCategories);
+  const reloadCategories = useCallback(() => {
+    api.getCategories().then(setCategories).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    reloadCategories();
+  }, [reloadCategories]);
+
+  // Real-time synchronization for category changes
+  useCatalogRealtime(reloadCategories);
 
   // Close menus on route change
   useEffect(() => {

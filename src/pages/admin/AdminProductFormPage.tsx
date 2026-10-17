@@ -25,6 +25,7 @@ export const AdminProductFormPage: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
 
   // Form State
@@ -167,34 +168,47 @@ export const AdminProductFormPage: React.FC = () => {
       return;
     }
 
-    setLoading(true);
-
-    const selectedCat = categories.find((c) => c.id === formData.category_id);
-
-    const payload = {
-      ...formData,
-      sale_price: numSalePrice,
-      price: numPrice,
-      cost_price: numCostPrice,
-      stock_quantity: Math.max(0, Number(formData.stock_quantity)),
-      low_stock_threshold: Math.max(0, Number(formData.low_stock_threshold)),
-      category_name: selectedCat?.name || '',
-      category_slug: selectedCat?.slug || '',
-      images,
-      variants,
-    };
-
-    if (isEditing && id) {
-      await api.updateProduct(id, payload);
-    } else {
-      await api.createProduct(payload as any);
+    if (!formData.category_id) {
+      alert('Please select a valid category for the product.');
+      return;
     }
 
-    setLoading(false);
-    setSuccessMsg(true);
-    setTimeout(() => {
-      navigate('/admin/products');
-    }, 1200);
+    setLoading(true);
+    setErrorMsg(null);
+    setSuccessMsg(false);
+
+    try {
+      const selectedCat = categories.find((c) => c.id === formData.category_id);
+
+      const payload = {
+        ...formData,
+        sale_price: numSalePrice,
+        price: numPrice,
+        cost_price: numCostPrice,
+        stock_quantity: Math.max(0, Number(formData.stock_quantity)),
+        low_stock_threshold: Math.max(0, Number(formData.low_stock_threshold)),
+        category_name: selectedCat?.name || '',
+        category_slug: selectedCat?.slug || '',
+        images,
+        variants,
+      };
+
+      if (isEditing && id) {
+        await api.updateProduct(id, payload);
+      } else {
+        await api.createProduct(payload as any);
+      }
+
+      setLoading(false);
+      setSuccessMsg(true);
+      setTimeout(() => {
+        navigate('/admin/products');
+      }, 1200);
+    } catch (err: unknown) {
+      setLoading(false);
+      const msg = err instanceof Error ? err.message : 'Failed to save product to database.';
+      setErrorMsg(msg);
+    }
   };
 
   return (
@@ -224,9 +238,16 @@ export const AdminProductFormPage: React.FC = () => {
         </div>
       </div>
 
+      {errorMsg && (
+        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold flex items-center gap-2">
+          <AlertCircle className="w-5 h-5 text-rose-600 shrink-0" />
+          <span>{errorMsg}</span>
+        </div>
+      )}
+
       {successMsg && (
         <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-2">
-          <CheckCircle className="w-5 h-5 text-emerald-600" />
+          <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
           <span>Product saved successfully! Returning to catalog...</span>
         </div>
       )}

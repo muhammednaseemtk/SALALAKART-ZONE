@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { api } from '../../services/api';
+import { useCatalogRealtime } from '../../hooks/useCatalogRealtime';
 import { Category } from '../../types';
 import { Layers, Plus, Edit, Trash2, CheckCircle, AlertCircle, X, ArrowUpDown } from 'lucide-react';
 
@@ -19,7 +20,7 @@ export const AdminCategoriesPage: React.FC = () => {
   const [displayOrder, setDisplayOrder] = useState(1);
   const [isActive, setIsActive] = useState(true);
 
-  const loadCategories = async () => {
+  const loadCategories = useCallback(async () => {
     setLoading(true);
     setFetchError(null);
     try {
@@ -31,11 +32,14 @@ export const AdminCategoriesPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadCategories();
-  }, []);
+  }, [loadCategories]);
+
+  // Real-time synchronization
+  useCatalogRealtime(loadCategories);
 
   const openCreateModal = () => {
     setEditingCategory(null);

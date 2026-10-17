@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../services/api';
+import { useCatalogRealtime } from '../../hooks/useCatalogRealtime';
 import { Product, Category } from '../../types';
 import {
   Package,
@@ -25,7 +26,7 @@ export const AdminProductsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -42,28 +43,43 @@ export const AdminProductsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [loadData]);
+
+  // Real-time catalog subscription
+  useCatalogRealtime(loadData);
 
   const handleToggleStatus = async (product: Product) => {
-    await api.updateProduct(product.id, { is_active: !product.is_active });
-    loadData();
+    try {
+      await api.updateProduct(product.id, { is_active: !product.is_active });
+      loadData();
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Failed to update product status');
+    }
   };
 
   const handleDelete = async (id: string, name: string) => {
     if (confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) {
-      await api.deleteProduct(id);
-      loadData();
+      try {
+        await api.deleteProduct(id);
+        loadData();
+      } catch (err: unknown) {
+        alert(err instanceof Error ? err.message : 'Failed to delete product');
+      }
     }
   };
 
   const handleClearAll = async () => {
     if (confirm('Are you sure you want to remove ALL products from the store? Only new products you add as admin will be visible.')) {
-      await api.clearAllProducts();
-      loadData();
+      try {
+        await api.clearAllProducts();
+        loadData();
+      } catch (err: unknown) {
+        alert(err instanceof Error ? err.message : 'Failed to clear products');
+      }
     }
   };
 
